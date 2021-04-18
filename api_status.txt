@@ -5,3 +5,7 @@
 /get_cart - completed
 /get_wishlist - completed
 /get_orders - completed
+/add_to_wishlist - completed - not tested
+/add_to_cart - completed - not tested
+/rem_from_wishlist - completed - not tested
+/rem_from_cart - completed - not tested

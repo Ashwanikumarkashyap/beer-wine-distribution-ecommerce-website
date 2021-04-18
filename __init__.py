@@ -127,37 +127,109 @@ def add_to_products():
 
 # POST/PUT FUNCTIONS
 
+# completed
 @app.route("/add_to_wishlist", methods=["POST", "PUT"])
 def add_to_wishlist():
-    pass
 
-@app.route("/add_to_cart", methods=["POST", "PUT"])
-def add_to_cart():
-    pass
-
-
-@app.route("/rem_from_wishlist", methods=["PUT"])
-def rem_from_wishlist():
-
-    wishlist_id = request.args.get("wishlist_id")
+    customer_id = request.args.get("customer_id")
+    product_id = request.args.get("product_id")
 
     collection = db["wishlist"]
 
+    db_check = collection.find_one({"customer_id": customer_id})
+
     try:
-        collection.remove({"wishlist_id": wishlist_id})
+
+        if db_check:
+            collection.update_one({"customer_id": customer_id}, 
+            {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id]))}})
+        else:
+            collection.insert_one({
+                "customer_id": customer_id,
+                "product_ids": [product_id]
+            })
+
+        return json.dumps({"status": "success"})
+    
+    except:
+        return json.dumps({"status": "failed"})
+
+# completed
+@app.route("/add_to_cart", methods=["POST", "PUT"])
+def add_to_cart():
+    
+    customer_id = request.args.get("customer_id")
+    product_id = request.args.get("product_id")
+
+    collection = db["cart"]
+
+    db_check = collection.find_one({"customer_id": customer_id})
+
+    try:
+
+        if db_check:
+            total_price = 0
+            for past_product_id in db_check["product_ids"]:
+                total_price += db["product_details"].find_one({"product_id": past_product_id})["price"]
+            total_price += db["product_details"].find_one({"product_id": product_id})["price"]
+            collection.update_one({"customer_id": customer_id}, 
+                                  {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id])),
+                                            "total_price": total_price}})
+        else:
+            collection.insert_one({
+                "customer_id": customer_id,
+                "product_ids": [product_id],
+                "total_price": db["product_details"].find_one({"product_id": product_id})["price"]
+            })
+
+        return json.dumps({"status": "success"})
+    
+    except:
+        return json.dumps({"status": "failed"})
+
+# completed
+@app.route("/rem_from_wishlist", methods=["PUT"])
+def rem_from_wishlist():
+
+    customer_id = request.args.get("customer_id")
+    product_id = request.args.get("prodcut_id")
+
+    collection = db["wishlist"]
+
+    db_check = collection.find_one({"customer_id": customer_id})
+
+    try:
+        if db_check:
+            if product_id in db_check["product_ids"]:
+                collection.update_one({"customer_id": customer_id}, 
+                                      {"$set": {"product_ids": list(set(db_check["product_ids"].remove(product_id)))}})
+            else:
+                return json.dumps({"status": "failed"})
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
 
+# completed
 @app.route("/rem_from_cart", methods=["PUT"])
 def rem_from_cart():
 
-    cart_id = request.args.get("cart_id")
+    customer_id = request.args.get("customer_id")
+    product_id = request.args.get("prodcut_id")
 
     collection = db["cart"]
 
+    db_check = collection.find_one({"customer_id": customer_id})
+
     try:
-        collection.remove({"cart_id": cart_id})
+        if db_check:
+            current_total_price = db_check["total_price"]
+            if product_id in db_check["product_ids"]:
+                price_of_removed_product = db["product_details"].find_one({"product_id": product_id})["price"]
+                collection.update_one({"customer_id": customer_id}, 
+                                      {"$set": {"product_ids": list(set(db_check["product_ids"].remove(product_id))),
+                                                "total_price": current_total_price - price_of_removed_product}})
+            else:
+                return json.dumps({"status": "failed"})
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
