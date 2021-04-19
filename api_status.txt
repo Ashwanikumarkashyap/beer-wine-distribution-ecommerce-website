@@ -1,11 +1,14 @@
-/val_sign_up - completed - just need to check for unique username
+/val_sign_up - completed
 /val_sign_in - completed
 /add_to_products - completed
 /get_products - completed (filtering by category and price included)
 /get_cart - completed
 /get_wishlist - completed
 /get_orders - completed
-/add_to_wishlist - completed - not tested
-/add_to_cart - completed - not tested
-/rem_from_wishlist - completed - not tested
-/rem_from_cart - completed - not tested
+/add_to_wishlist - completed
+/add_to_cart - completed
+/rem_from_wishlist - completed
+/rem_from_cart - completed
+/proceed_to_checkout - incomplete
+/clear_wishlist - completed
+/clear_cart - completed

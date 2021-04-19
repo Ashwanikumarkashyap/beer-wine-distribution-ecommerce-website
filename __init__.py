@@ -2,6 +2,7 @@ from flask import Flask, session, g, render_template, request, make_response
 import pymongo
 import urllib.parse
 from bson.json_util import dumps
+from bson.objectid import ObjectId
 import math
 import json
 import bcrypt
@@ -30,6 +31,7 @@ def sign_in():
 
 # POST FUNCTIONS
 
+# completed
 @app.route("/val_sign_up", methods=["POST"])
 def val_sign_up():
     
@@ -42,6 +44,15 @@ def val_sign_up():
     govt_id = request.args.get("govt_id")
 
     collection = db["customer_details"]
+
+    if collection.find_one({"user_name": user_name}):
+        return json.dumps({"status": "failed", "message": "username already exists"})
+    if collection.find_one({"email_id": email_id}):
+        return json.dumps({"status": "failed", "message": "email address already exists"})
+    if collection.find_one({"contact_no": contact_no}):
+        return json.dumps({"status": "failed", "message": "contact no already exists"})
+    if collection.find_one({"govt_id": govt_id}):
+        return json.dumps({"status": "failed", "message": "govt_id already exists"})
 
     try:
 
@@ -170,16 +181,17 @@ def add_to_cart():
         if db_check:
             total_price = 0
             for past_product_id in db_check["product_ids"]:
-                total_price += db["product_details"].find_one({"product_id": past_product_id})["price"]
-            total_price += db["product_details"].find_one({"product_id": product_id})["price"]
+                total_price += float(db["product_details"].find_one({"_id": ObjectId(past_product_id)})["price"])
+            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
             collection.update_one({"customer_id": customer_id}, 
                                   {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id])),
                                             "total_price": total_price}})
         else:
+            print("entered else")
             collection.insert_one({
                 "customer_id": customer_id,
                 "product_ids": [product_id],
-                "total_price": db["product_details"].find_one({"product_id": product_id})["price"]
+                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
             })
 
         return json.dumps({"status": "success"})
@@ -192,7 +204,7 @@ def add_to_cart():
 def rem_from_wishlist():
 
     customer_id = request.args.get("customer_id")
-    product_id = request.args.get("prodcut_id")
+    product_id = request.args.get("product_id")
 
     collection = db["wishlist"]
 
@@ -201,10 +213,14 @@ def rem_from_wishlist():
     try:
         if db_check:
             if product_id in db_check["product_ids"]:
+                temp_product_ids = db_check["product_ids"]
+                temp_product_ids.remove(product_id)
                 collection.update_one({"customer_id": customer_id}, 
-                                      {"$set": {"product_ids": list(set(db_check["product_ids"].remove(product_id)))}})
+                                      {"$set": {"product_ids": list(set(temp_product_ids))}})
             else:
                 return json.dumps({"status": "failed"})
+        else:
+            return json.dumps({"status": "failed", "message": "customer id not found"})
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
@@ -214,7 +230,7 @@ def rem_from_wishlist():
 def rem_from_cart():
 
     customer_id = request.args.get("customer_id")
-    product_id = request.args.get("prodcut_id")
+    product_id = request.args.get("product_id")
 
     collection = db["cart"]
 
@@ -222,17 +238,58 @@ def rem_from_cart():
 
     try:
         if db_check:
-            current_total_price = db_check["total_price"]
+            current_total_price = float(db_check["total_price"])
             if product_id in db_check["product_ids"]:
-                price_of_removed_product = db["product_details"].find_one({"product_id": product_id})["price"]
+                temp_product_ids = db_check["product_ids"]
+                temp_product_ids.remove(product_id)
+                price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
                 collection.update_one({"customer_id": customer_id}, 
-                                      {"$set": {"product_ids": list(set(db_check["product_ids"].remove(product_id))),
+                                      {"$set": {"product_ids": list(set(temp_product_ids)),
                                                 "total_price": current_total_price - price_of_removed_product}})
             else:
                 return json.dumps({"status": "failed"})
+        else:
+            return json.dumps({"status": "failed", "message": "customer id not found"})
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
+
+# incomplete
+@app.route("/proceed_to_checkout", methods=["POST"])
+def proceed_to_checkout():
+
+    customer_id = request.args.get("customer_id")
+
+    pass
+
+# completed
+@app.route("/clear_wishlist", methods=["DELETE"])
+def empty_wishlist():
+
+    customer_id = request.args.get("customer_id")
+
+    collection = db["wishlist"]
+
+    try:
+        collection.delete_one({"customer_id": customer_id})
+        return json.dumps({"status": "success"})
+    except:
+        return json.dumps({"status": "failed"})
+
+# completed
+@app.route("/clear_cart", methods=["DELETE"])
+def empty_cart():
+    
+    customer_id = request.args.get("customer_id")
+
+    collection = db["cart"]
+
+    try:
+        collection.delete_one({"customer_id": customer_id})
+        return json.dumps({"status": "success"})
+    except:
+        return json.dumps({"status": "failed"})
+
 
 
 # GET FUNCTIONS
