@@ -171,6 +171,7 @@ def add_to_cart():
     
     customer_id = request.args.get("customer_id")
     product_id = request.args.get("product_id")
+    quantity = request.args.get("quantity")
 
     collection = db["cart"]
 
@@ -179,19 +180,16 @@ def add_to_cart():
     try:
 
         if db_check:
-            total_price = 0
-            for past_product_id in db_check["product_ids"]:
-                total_price += float(db["product_details"].find_one({"_id": ObjectId(past_product_id)})["price"])
-            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
+            total_price = db_check["total_price"]
+            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
             collection.update_one({"customer_id": customer_id}, 
-                                  {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id])),
+                                  {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
                                             "total_price": total_price}})
         else:
-            print("entered else")
             collection.insert_one({
                 "customer_id": customer_id,
-                "product_ids": [product_id],
-                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
+                "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
+                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
             })
 
         return json.dumps({"status": "success"})
@@ -239,12 +237,17 @@ def rem_from_cart():
     try:
         if db_check:
             current_total_price = float(db_check["total_price"])
-            if product_id in db_check["product_ids"]:
+            product_ids = [entry["product_id"] for entry in db_check["product_ids"]]
+            if product_id in product_ids:
                 temp_product_ids = db_check["product_ids"]
-                temp_product_ids.remove(product_id)
-                price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"])
+                price_of_removed_product, updated_product_ids = 0, []
+                for entry in temp_product_ids:
+                    if entry.get("product_id") == product_id:
+                        price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * entry.get("quantity")
+                    else:
+                        updated_product_ids.append(entry)
                 collection.update_one({"customer_id": customer_id}, 
-                                      {"$set": {"product_ids": list(set(temp_product_ids)),
+                                      {"$set": {"product_ids": updated_product_ids,
                                                 "total_price": current_total_price - price_of_removed_product}})
             else:
                 return json.dumps({"status": "failed"})
@@ -316,8 +319,6 @@ def update_product_details():
     
     except:
         return json.dumps({"status": "failed"})
-
-
 
 # DELETE FUNCTIONS
 
