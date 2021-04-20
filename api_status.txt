@@ -9,7 +9,8 @@
 /add_to_cart - completed
 /rem_from_wishlist - completed
 /rem_from_cart - completed
-/proceed_to_checkout - incomplete
 /clear_wishlist - completed
 /clear_cart - completed
 /update_product_details - completed
+/rem_product - incomplete
+/proceed_to_checkout - incomplete
