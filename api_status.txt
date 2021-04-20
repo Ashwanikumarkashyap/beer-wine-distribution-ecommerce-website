@@ -5,10 +5,10 @@
 /get_cart - completed
 /get_wishlist - completed
 /get_orders - completed
-/add_to_wishlist - completed
-/add_to_cart - completed
-/rem_from_wishlist - completed
-/rem_from_cart - completed
+/add_to_wishlist - completed - need to add item quantity logic
+/add_to_cart - completed - need to add item quantity logic
+/rem_from_wishlist - completed - need to add item quantity logic
+/rem_from_cart - completed - need to add item quantity logic
 /clear_wishlist - completed
 /clear_cart - completed
 /update_product_details - completed
