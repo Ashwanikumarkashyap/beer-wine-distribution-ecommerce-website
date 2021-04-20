@@ -12,3 +12,4 @@
 /proceed_to_checkout - incomplete
 /clear_wishlist - completed
 /clear_cart - completed
+/update_product_details - completed

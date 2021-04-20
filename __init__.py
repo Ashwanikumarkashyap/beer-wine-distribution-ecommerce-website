@@ -125,9 +125,9 @@ def add_to_products():
         collection.insert_one({
             "brand": brand,
             "description": description,
-            "stock": stock,
+            "stock": int(stock),
             "category": category,
-            "price": price,
+            "price": float(price),
             "images": images
         })
 
@@ -263,6 +263,65 @@ def proceed_to_checkout():
     pass
 
 # completed
+@app.route("/update_product_details", methods=["PUT"])
+def update_product_details():
+    
+    product_id = request.args.get("product_id")
+
+    brand = request.args.get("brand")
+    description = request.args.get("description")
+    stock = request.args.get("stock")
+    category = request.args.get("category")
+    price = request.args.get("price")
+    images = request.args.getlist("images")
+
+    collection = db["product_details"]
+
+    db_check = collection.find_one({"_id": ObjectId(product_id)})
+
+    try:
+
+        if db_check:
+
+            if brand:
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"brand": brand}})
+            if description:
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"description": description}})
+            if stock:
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"stock": int(stock)}})
+            if category:
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"category": category}})
+            if images:
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"images": images}})
+            if price:
+                price_change = float(price) - float(db_check["price"])
+                collection.update_one({"_id": ObjectId(product_id)}, 
+                                    {"$set": {"price": float(price)}})
+
+                # modify the change in everyones cart
+                for entry in db["cart"].find():
+                    if product_id in entry["product_ids"]:
+                        db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
+                                            {"$set": {"price": float(entry["total_price"]) + price_change}})
+
+            return json.dumps({"status": "success"})
+
+        else:
+            return json.dumps({"status": "failed", "message": "product id not found"})
+    
+    except:
+        return json.dumps({"status": "failed"})
+
+
+
+# DELETE FUNCTIONS
+
+# completed
 @app.route("/clear_wishlist", methods=["DELETE"])
 def empty_wishlist():
 
@@ -289,8 +348,6 @@ def empty_cart():
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
-
-
 
 # GET FUNCTIONS
 
