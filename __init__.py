@@ -306,11 +306,12 @@ def update_product_details():
                 collection.update_one({"_id": ObjectId(product_id)}, 
                                     {"$set": {"price": float(price)}})
 
-                # modify the change in everyones cart
+                # put the change in everyones cart who has the updated product_id 
                 for entry in db["cart"].find():
-                    if product_id in entry["product_ids"]:
-                        db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
-                                            {"$set": {"price": float(entry["total_price"]) + price_change}})
+                    for product_data in entry["product_ids"]:
+                        if product_data["product_id"] == product_id:
+                            db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
+                                                {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
 
             return json.dumps({"status": "success"})
 
