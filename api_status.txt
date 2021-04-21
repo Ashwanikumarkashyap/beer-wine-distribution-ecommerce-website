@@ -11,7 +11,7 @@
 /rem_from_cart - completed
 /clear_wishlist - completed
 /clear_cart - completed
-/update_product_details
-/rem_product - incomplete
+/update_product_details - completed
+/rem_from_products - completed
 /proceed_to_checkout - incomplete
 /update_cart - incomplete

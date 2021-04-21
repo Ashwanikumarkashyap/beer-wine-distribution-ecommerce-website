@@ -351,6 +351,45 @@ def empty_cart():
     except:
         return json.dumps({"status": "failed"})
 
+# completed
+@app.route("/rem_from_products", methods=["DELETE"])
+def rem_from_products():
+    
+    product_id = request.args.get("product_id")
+
+    collection = db["product_details"]
+
+    db_check = collection.find_one({"_id": ObjectId(product_id)})
+
+    try:
+
+        if db_check:
+
+            product_price = db_check["price"]
+            collection.delete_one({"_id": ObjectId(product_id)})
+
+            # put the change in everyones cart who has the updated product_id 
+            for entry in db["cart"].find():
+                updated_product_ids, product_id_found = [], False
+                for product_data in entry["product_ids"]:
+                    if product_data["product_id"] == product_id:   
+                        product_id_found = True
+                        db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
+                                            {"$set": {"total_price": float(entry["total_price"]) - product_price * product_data["quantity"]}})
+                    else:
+                        updated_product_ids.append(product_data)
+                if product_id_found:
+                    db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
+                                          {"$set": {"product_ids": updated_product_ids}})
+
+            return json.dumps({"status": "success"})
+
+        else:
+            return json.dumps({"status": "failed", "message": "product id not found"})
+    
+    except:
+        return json.dumps({"status": "failed"})
+
 # GET FUNCTIONS
 
 # completed (contains options to filter by category, min price, max price)
