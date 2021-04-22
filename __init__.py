@@ -117,6 +117,7 @@ def add_to_products():
     category = request.args.get("category")
     price = request.args.get("price")
     images = request.args.getlist("images")
+    deleted = False
 
     collection = db["product_details"]
 
@@ -128,7 +129,8 @@ def add_to_products():
             "stock": int(stock),
             "category": category,
             "price": float(price),
-            "images": images
+            "images": images,
+            "deleted": deleted
         })
 
         return json.dumps({"status": "success"})
@@ -321,6 +323,40 @@ def update_product_details():
     except:
         return json.dumps({"status": "failed"})
 
+# completed
+@app.route("/update_cart", methods=["PUT"])
+def update_cart():
+
+    customer_id = request.args.get("customer_id")
+    product_id = request.args.get("product_id")
+    quantity = request.args.get("quantity")
+
+    collection = db["cart"]
+
+    db_check = collection.find_one({"customer_id": customer_id})
+
+    if db_check:
+        updated_product_details, product_id_found, old_quantity = [], False, None
+        for product_data in db_check["product_ids"]:
+            if product_data["product_id"] == product_id:
+                product_id_found = True
+                old_quantity = product_data["quantity"]
+                updated_product_details.append({"product_id": product_id, "quantity": quantity})
+            else:
+                updated_product_details.append(product_data)
+    else:
+        return json.dumps({"status": "failed", "message": "customer id not found"})
+    if product_id_found:
+        change_in_quantity = int(quantity) - int(old_quantity)
+        price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * change_in_quantity
+        collection.update_one({"customer_id": customer_id}, 
+                              {"$set": {"product_ids": updated_product_details,
+                                        "total_price": db_check["total_price"] + price_change}})
+        return json.dumps({"status": "success"})
+    else:
+        return json.dumps({"status": "failed"})
+
+
 # DELETE FUNCTIONS
 
 # completed
@@ -366,7 +402,7 @@ def rem_from_products():
         if db_check:
 
             product_price = db_check["price"]
-            collection.delete_one({"_id": ObjectId(product_id)})
+            collection.update_one({"_id": ObjectId(product_id)}, {"$set": {"deleted": True}})
 
             # put the change in everyones cart who has the updated product_id 
             for entry in db["cart"].find():

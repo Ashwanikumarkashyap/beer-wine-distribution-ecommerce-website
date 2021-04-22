@@ -1,6 +1,13 @@
+# SIGN UP / SIGN IN
 /val_sign_up - completed
 /val_sign_in - completed
+
+# ADMIN FUNCS
 /add_to_products - completed
+/update_product_details - completed
+/rem_from_products - completed
+
+# USER FUNCS
 /get_products - completed (filtering by category and price included)
 /get_cart - completed
 /get_wishlist - completed
@@ -11,7 +18,6 @@
 /rem_from_cart - completed
 /clear_wishlist - completed
 /clear_cart - completed
-/update_product_details - completed
-/rem_from_products - completed
+/update_cart - completed
 /proceed_to_checkout - incomplete
-/update_cart - incomplete
+/get_order_history - incomplete
