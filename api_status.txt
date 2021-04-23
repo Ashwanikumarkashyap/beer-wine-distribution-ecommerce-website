@@ -19,5 +19,4 @@
 /clear_wishlist - completed
 /clear_cart - completed
 /update_cart - completed
-/proceed_to_checkout - incomplete
-/get_order_history - incomplete
+/proceed_to_checkout - completed - not tested

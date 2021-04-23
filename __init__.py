@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 import math
 import json
 import bcrypt
+import datetime
 
 app = Flask(__name__)
 
@@ -264,8 +265,52 @@ def rem_from_cart():
 def proceed_to_checkout():
 
     customer_id = request.args.get("customer_id")
+    shipping_address = request.args.get("shipping_address")
 
-    pass
+    if not shipping_address:
+        shipping_address = db["customer_details"].find_one({"_id", ObjectId(customer_id)})["address"]
+
+    collection = db["cart"]
+
+    db_check = collection.find_one({"customer_id", customer_id})
+
+    if db_check:
+
+        # check whether quantity of products exisits in inventory stock
+        products_present_in_inventory = True
+        store_queries_to_run = []
+        for product_data in db_check["product_ids"]:
+            product_id, product_quantity = product_data["product_id"], product_data["quantity"]
+            product_in_db = db["product_details"].find_one({"_id", ObjectId(product_id)})
+            if product_in_db:
+                if int(product_in_db["stock"]) < int(product_quantity):
+                    products_present_in_inventory = False
+                    break
+                else:
+                    store_queries_to_run.append({"product_id": product_id, "stock": int(product_in_db["stock"]) - int(product_quantity)})
+        
+        if products_present_in_inventory:
+            for queries in store_queries_to_run:
+                db["product_details"].update_one({"_id", ObjectId(queries["product_id"])},
+                                                 {"$set": {"stock": queries["stock"]}})
+        
+            db["orders"].insert_one({
+                "customer_id": customer_id,
+                "shipping_address": shipping_address,
+                "order_date": datetime.datetime.now(),
+                "product_ids": db_check["product_ids"],
+                "total_price": float(db_check["total_price"]),
+                "total_price_post_charges": float(db_check["total_price"]) + 0.01 * float(db_check["total_price"])
+            })
+            
+            db["cart"].delete_one({"customer_id": customer_id})
+
+            return json.dumps({"status": "success"})
+        else:
+            return json.dumps({"status": "failed", "message": "quantity of a product more than inventory stock"})
+
+    else:
+        return json.dumps({"status": "failed", "message": "customer id not found"})
 
 # completed
 @app.route("/update_product_details", methods=["PUT"])
