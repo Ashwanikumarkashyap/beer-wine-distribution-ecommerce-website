@@ -7,6 +7,8 @@ import math
 import json
 import bcrypt
 import datetime
+import re
+import phonenumbers
 
 app = Flask(__name__)
 
@@ -54,6 +56,16 @@ def val_sign_up():
         return json.dumps({"status": "failed", "message": "contact no already exists"})
     if collection.find_one({"govt_id": govt_id}):
         return json.dumps({"status": "failed", "message": "govt_id already exists"})
+
+    # email address validation
+    email_regex = r"^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
+    if not re.search(email_regex, email_id):
+        return json.dumps({"status": "failed", "message": "invalid email address"})
+    
+    # phone number validation
+    ph_number = phonenumbers.parse(str(contact_no), "US")
+    if not phonenumbers.is_valid_number(ph_number):
+        return json.dumps({"status": "failed", "message": "invalid phone number"})
 
     try:
 
