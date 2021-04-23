@@ -9,6 +9,7 @@ import bcrypt
 import datetime
 import re
 import phonenumbers
+from password_strength import PasswordPolicy
 
 app = Flask(__name__)
 
@@ -61,6 +62,17 @@ def val_sign_up():
     email_regex = r"^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
     if not re.search(email_regex, email_id):
         return json.dumps({"status": "failed", "message": "invalid email address"})
+
+    # password validation
+    policy = PasswordPolicy.from_names(
+        length=8,  # min length: 8
+        uppercase=2,  # need min. 2 uppercase letters
+        numbers=2,  # need min. 2 digits
+        special=2,  # need min. 2 special characters
+        nonletters=2,  # need min. 2 non-letter characters (digits, specials, anything)
+    )
+    if len(policy.test(password)) > 0:
+        return json.dumps({"status": "failed", "message": "password not strong enough"})
     
     # phone number validation
     ph_number = phonenumbers.parse(str(contact_no), "US")
