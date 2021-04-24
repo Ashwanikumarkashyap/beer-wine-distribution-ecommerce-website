@@ -516,6 +516,17 @@ def get_products():
     products = db["product_details"]
     return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
 
+
+# search products through search bar
+@app.route("/get_products_with_search", methods=["POST"])
+def get_products_with_search():
+
+    searchbox_text = request.form.get("text")
+
+    products = db["product_details"]
+    return dumps(products.find( { '$text': { '$search':  '\"'+searchbox_text+'\"'} } ))
+
+
 # completed
 @app.route("/get_cart", methods=["GET"])
 def get_cart():
