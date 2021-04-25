@@ -1,0 +1,40 @@
+.product-desc-field {
+    resize: none;
+}
+
+.checkout-btn-wrapper {
+    margin-top: 20px;
+}
+
+.myadmin-page-wrapper {
+    margin-top: 20px;
+}
+
+#loader-wrapper {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#loader {
+    width: 5em;
+    height: 5em;
+}
+
+#product-desc-field {
+    padding: 5px 10px;
+}
+
+.my-disabled-btn {
+    background: #d1cbcb !important;
+    color: #8f7373 !important;
+}
