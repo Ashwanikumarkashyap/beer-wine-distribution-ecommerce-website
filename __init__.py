@@ -514,17 +514,52 @@ def get_products():
         price_max = math.pow(10, 4)
 
     products = db["product_details"]
-    return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
+
+    #pagination
+    limit = int(request.args['limit'])
+    page_number = int(request.args['page_number'])
+
+    starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
+    last_id = starting_id[page_number]['_id']
+
+    #return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
+    all_products_with_page_limit = products.find({"_id": {"$gte" : last_id}, "category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING).limit(limit)
+    output = []
+
+    for i in all_products_with_page_limit:
+        output.append(i);
+
+    next_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
+    prev_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
+
+    return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
 
 
 # search products through search bar
-@app.route("/get_products_with_search", methods=["POST"])
+@app.route("/get_products_with_search", methods=["GET"])
 def get_products_with_search():
 
-    searchbox_text = request.form.get("text")
+    searchbox_text = request.args.get("text")
 
     products = db["product_details"]
-    return dumps(products.find( { '$text': { '$search':  '\"'+searchbox_text+'\"'} } ))
+
+    #pagination
+    limit = int(request.args['limit'])
+    page_number = int(request.args['page_number'])
+
+    starting_id = products.find({'$text': { '$search':  '\"'+searchbox_text+'\"'}}).sort('_id', pymongo.ASCENDING)
+    last_id = starting_id[page_number]['_id']
+
+    searched_products_with_page_limit = products.find({"_id": {"$gte" : last_id}, '$text': { '$search':  '\"'+searchbox_text+'\"'}}).sort('_id', pymongo.ASCENDING).limit(limit)
+    output = []
+
+    for i in searched_products_with_page_limit:
+        output.append(i);
+
+    next_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
+    prev_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
+
+    return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
 
 
 # completed
