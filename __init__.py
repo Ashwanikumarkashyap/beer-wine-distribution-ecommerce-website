@@ -219,7 +219,7 @@ def val_sign_in():
         # )
         return res
     
-    return json.dumps({"status": "failed"})
+    return json.dumps({"status": "failed", "message": "invalid login credentials"})
 
 
 # completed
@@ -407,11 +407,11 @@ def proceed_to_checkout():
     shipping_address = request.args.get("shipping_address")
 
     if not shipping_address:
-        shipping_address = db["customer_details"].find_one({"_id", ObjectId(customer_id)})["address"]
+        shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["address"]
 
     collection = db["cart"]
 
-    db_check = collection.find_one({"customer_id", customer_id})
+    db_check = collection.find_one({"customer_id": customer_id})
 
     if db_check:
 
@@ -420,7 +420,7 @@ def proceed_to_checkout():
         store_queries_to_run = []
         for product_data in db_check["product_ids"]:
             product_id, product_quantity = product_data["product_id"], product_data["quantity"]
-            product_in_db = db["product_details"].find_one({"_id", ObjectId(product_id)})
+            product_in_db = db["product_details"].find_one({"_id": ObjectId(product_id)})
             if product_in_db:
                 if int(product_in_db["stock"]) < int(product_quantity):
                     products_present_in_inventory = False
@@ -430,7 +430,7 @@ def proceed_to_checkout():
         
         if products_present_in_inventory:
             for queries in store_queries_to_run:
-                db["product_details"].update_one({"_id", ObjectId(queries["product_id"])},
+                db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
                                                  {"$set": {"stock": queries["stock"]}})
         
             db["orders"].insert_one({
@@ -439,7 +439,8 @@ def proceed_to_checkout():
                 "order_date": datetime.datetime.now(),
                 "product_ids": db_check["product_ids"],
                 "total_price": float(db_check["total_price"]),
-                "total_price_post_charges": float(db_check["total_price"]) + 0.01 * float(db_check["total_price"])
+                "total_price_post_charges": float(db_check["total_price"]) + 0.5 * float(db_check["total_price"]),
+                "order_status": "order received"
             })
             
             db["cart"].delete_one({"customer_id": customer_id})
@@ -545,7 +546,7 @@ def update_cart():
             if product_data["product_id"] == product_id:
                 product_id_found = True
                 old_quantity = product_data["quantity"]
-                updated_product_details.append({"product_id": product_id, "quantity": quantity})
+                updated_product_details.append({"product_id": product_id, "quantity": int(quantity)})
             else:
                 updated_product_details.append(product_data)
     else:
@@ -647,7 +648,53 @@ def get_products():
         price_max = math.pow(10, 4)
 
     products = db["product_details"]
-    return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
+
+    #pagination
+    limit = int(request.args['limit'])
+    page_number = int(request.args['page_number'])
+
+    starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
+    last_id = starting_id[page_number]['_id']
+
+    #return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
+    all_products_with_page_limit = products.find({"_id": {"$gte" : last_id}, "category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING).limit(limit)
+    output = []
+
+    for i in all_products_with_page_limit:
+        output.append(i);
+
+    next_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
+    prev_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
+
+    return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
+
+
+# search products through search bar
+@app.route("/get_products_with_search", methods=["GET"])
+def get_products_with_search():
+
+    searchbox_text = request.args.get("text")
+
+    products = db["product_details"]
+
+    #pagination
+    limit = int(request.args['limit'])
+    page_number = int(request.args['page_number'])
+
+    starting_id = products.find({'$text': { '$search':  '\"'+searchbox_text+'\"'}}).sort('_id', pymongo.ASCENDING)
+    last_id = starting_id[page_number]['_id']
+
+    searched_products_with_page_limit = products.find({"_id": {"$gte" : last_id}, '$text': { '$search':  '\"'+searchbox_text+'\"'}}).sort('_id', pymongo.ASCENDING).limit(limit)
+    output = []
+
+    for i in searched_products_with_page_limit:
+        output.append(i);
+
+    next_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
+    prev_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
+
+    return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
+
 
 
 @app.route("/product_detail/<prod_id>", methods=["GET"])
@@ -686,6 +733,8 @@ def get_wishlist():
 @app.route("/get_orders", methods=["GET"])
 def get_orders():
     customer_id = request.args.get("customer_id")
+    if not customer_id:
+        customer_id = {"$exists": True}
     orders = db["orders"]
     return dumps(list(orders.find({"customer_id": customer_id})))
 
