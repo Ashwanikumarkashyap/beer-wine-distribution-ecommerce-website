@@ -709,7 +709,6 @@ def product_detail(prod_id):
 
     return render_template('product-detail.html', product=product, is_logged_in=is_logged_in)
 
-
 # completed
 @app.route("/get_cart", methods=["GET"])
 def get_cart():
@@ -717,8 +716,11 @@ def get_cart():
     if user:
         customer_id = user['user_name']
         # customer_id = request.args.get("customer_id")
-        cart = db["cart"]
-        return dumps(list(cart.find({"customer_id": customer_id})))
+        customer_cart = db["cart"].find_one({"customer_id": customer_id})
+        for index, product in enumerate(customer_cart["product_ids"]):
+            product_id = product["product_id"]
+            customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one({"_id": ObjectId(product_id)})
+        return dumps(customer_cart)
 
     return json.dumps({"status": "failed"})
 
