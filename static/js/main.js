@@ -116,6 +116,39 @@ function getProducts(category, minPrice, maxPrice, callback) {
     })
 }
 
+function getProducts1(pg, limit, category, minPrice, maxPrice, callback) {
+    
+    let data = {
+        'page_number': pg,
+        'limit': limit,
+    }
+
+    if (category) 
+        data.category = category;        
+
+    if (minPrice)
+        data.min_price = minPrice
+
+    if (maxPrice)
+        data.max_price = max_price
+    showLoader();
+    $.ajax({
+        url: '/get_products',
+        type: 'GET',
+        data: data,
+        dataType: "json",
+        success: function (response) {
+            hideLoader();
+            if (callback)
+                callback(response.result);
+        },
+        error: function (error) {
+            hideLoader();
+            console.log(error);
+        }
+    })
+}
+
 
 function addToCart(productId, qty, isProdId, callback) {
 

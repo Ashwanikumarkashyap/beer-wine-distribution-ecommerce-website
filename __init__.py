@@ -10,6 +10,7 @@ import datetime
 import re
 import phonenumbers
 from password_strength import PasswordPolicy
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -18,6 +19,9 @@ password = urllib.parse.quote("admin")
 url = "mongodb+srv://" + username + ":" + password + "@cluster0.riul3.mongodb.net/beer_wine_website?retryWrites=true&w=majority"
 cluster = pymongo.MongoClient(url)
 db = cluster["beer_wine_website"]
+
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+UPLOAD_DEST = 'static/prod_images/'
 
 app.secret_key = 'my secret key'
 
@@ -222,6 +226,10 @@ def val_sign_in():
     return json.dumps({"status": "failed", "message": "invalid login credentials"})
 
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 # completed
 @app.route("/add_to_products", methods=["POST"])
 def add_to_products():
@@ -229,15 +237,23 @@ def add_to_products():
     user = session.get('user')
 
     if user and user['is_admin']:
-        request_json = request.json
+        # request_json = request.json
+        #
+        # name = request_json["name"]
+        # brand = request_json["brand"]
+        # description = request_json["description"]
+        # stock = request_json["stock"]
+        # category = request_json["category"]
+        # price = request_json["price"]
+        # images = request_json["images"]
 
-        name = request_json["name"]
-        brand = request_json["brand"]
-        description = request_json["description"]
-        stock = request_json["stock"]
-        category = request_json["category"]
-        price = request_json["price"]
-        images = request_json["images"]
+        files = request.files.getlist('files[]')
+        name = request.form["name"]
+        brand = request.form["brand"]
+        description = request.form["description"]
+        stock = request.form["stock"]
+        category = request.form["category"]
+        price = request.form["price"]
 
         # name = request.args.get("name")
         # brand = request.args.get("brand")
@@ -251,23 +267,33 @@ def add_to_products():
         collection = db["product_details"]
 
         try:
-
-            collection.insert_one({
+            prod_id = collection.insert_one({
                 "name": name,
                 "brand": brand,
                 "description": description,
                 "stock": int(stock),
                 "category": category,
                 "price": float(price),
-                "images": images,
-                "deleted": deleted
-            })
+                "deleted": deleted,
+                "images": [],
+            }).inserted_id
+
+            images = []
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filepath = UPLOAD_DEST + str(prod_id) + '-' + secure_filename(file.filename)
+                    images.append('../' + filepath)
+                    file.save(filepath)
+
+            collection.update_one({"_id": ObjectId(prod_id)}, {"$set": {"images": images}})
+
             return json.dumps({"status": "success"})
         except:
             return json.dumps({"status": "failed"})
     return json.dumps({"status": "failed"})
 
 # POST/PUT FUNCTIONS
+
 
 # completed
 @app.route("/add_to_wishlist", methods=["POST", "PUT"])
@@ -578,6 +604,7 @@ def empty_wishlist():
     except:
         return json.dumps({"status": "failed"})
 
+
 # completed
 @app.route("/clear_cart", methods=["DELETE"])
 def empty_cart():
@@ -591,6 +618,7 @@ def empty_cart():
         return json.dumps({"status": "success"})
     except:
         return json.dumps({"status": "failed"})
+
 
 # completed
 @app.route("/rem_from_products", methods=["DELETE"])
@@ -629,6 +657,7 @@ def rem_from_products():
     
     except:
         return json.dumps({"status": "failed"})
+
 
 # GET FUNCTIONS
 
@@ -696,7 +725,6 @@ def get_products_with_search():
     return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
 
 
-
 @app.route("/product_detail/<prod_id>", methods=["GET"])
 def product_detail(prod_id):
     print('get_product_detail request made with id', prod_id)
@@ -722,12 +750,14 @@ def get_cart():
 
     return json.dumps({"status": "failed"})
 
+
 # completed
 @app.route("/get_wishlist", methods=["GET"])
 def get_wishlist():
     customer_id = request.args.get("customer_id")
     wishlist = db["wishlist"]
     return dumps(list(wishlist.find({"customer_id": customer_id})))
+
 
 # completed
 @app.route("/get_orders", methods=["GET"])
@@ -738,5 +768,6 @@ def get_orders():
     orders = db["orders"]
     return dumps(list(orders.find({"customer_id": customer_id})))
 
+
 if __name__ == "__main__":
-    app.run()   
+    app.run()

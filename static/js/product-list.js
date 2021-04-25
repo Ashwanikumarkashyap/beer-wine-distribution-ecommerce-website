@@ -3,7 +3,8 @@ $( document ).ready(function() {
     // creatLoginNav();
 
 
-    getProducts(null, null, null, createProductList);
+    // getProducts(null, null, null, createProductList);
+    getProducts1(1, 12, null, null, null, createProductList);
     // createProductList(products);
 
     // should be called after creating every UI elements

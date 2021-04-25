@@ -6,8 +6,9 @@ $( document ).ready(function() {
 
     // should be called after creating every UI elements
     applyTemplateAnimation();
+    attachListeners();
 
-    getProducts(null, null, null, createAdminList);
+    // getProducts1(1, 15, null, null, null, createAdminList);
 });
 
 function createAdminList(products) {
@@ -114,13 +115,25 @@ function attachListeners() {
 function addProduct() {
 
     let prodReq = fetchFormDetails();
+    var fd = getFiles();
+
+    fd.append('name', prodReq.name);
+    fd.append('price', prodReq.price);
+    fd.append('brand', prodReq.brand);
+    fd.append('stock', prodReq.stock);
+    fd.append('description', prodReq.description);
+    fd.append('category', prodReq.category);
+
     showLoader();
+
     $.ajax({
         type: "POST",
         url: "/add_to_products",
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify(prodReq),
+        // contentType: 'application/json; charset=utf-8',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: fd,
         success: function (response) {
             console.log("success\n", response);
             hideLoader();
@@ -133,6 +146,57 @@ function addProduct() {
         }
     })
 
+    // $.ajax({
+    //     type: "POST",
+    //     url: "/add_to_products",
+    //     contentType: 'application/json; charset=utf-8',
+    //     dataType: 'json',
+    //     data: JSON.stringify(prodReq),
+    //     success: function (response) {
+    //         console.log("success\n", response);
+    //         hideLoader();
+    //         $('#edit-modal').modal('hide');
+    //         getProducts(null, null, null, createAdminList);
+    //     },
+    //     error: function (error) {
+    //         hideLoader();
+    //         console.log('error', error);
+    //     }
+    // })
+
+}
+
+
+function getFiles() {
+    var fd = new FormData();
+    var files = $('#product-images-field')[0].files;
+    
+    // Check file selected or not
+    if(files.length > 0 ){
+        for (let idx = 0; idx < files.length; idx++) {
+            fd.append("files[]", files[idx]);
+        }
+    }
+
+    return fd;
+    //     $.ajax({
+    //         url: 'upload.php',
+    //         type: 'post',
+    //         data: fd,
+    //         contentType: false,
+    //         processData: false,
+    //         success: function(response){
+    //             if(response != 0){
+    //             $("#img").attr("src",response); 
+    //             $(".preview img").show(); // Display image element
+    //             }else{
+    //             alert('file not uploaded');
+    //             }
+    //         },
+    //     });
+    // }else{
+    //     alert("Please select a file.");
+    // }
 }
 
 function fetchFormDetails() {
@@ -156,7 +220,6 @@ function fetchFormDetails() {
         'stock': qty,
         'description': desc,
         'category': category,
-        'price': price,
         'images': images,
     }
 
