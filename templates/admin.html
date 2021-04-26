@@ -430,33 +430,52 @@
                                     placeholder="Enter brand" />
                             </div>
                         </div>
-                    </div>
 
-                    <!--Textarea-->
-                    <div class="form-group">
-                        <label class="control-label" for="description">Description</label>
-                        <div>
-                            <textarea id="product-desc-field" class="form-control product-desc-field" name="description"
-                                placeholder="Description" rows="4"></textarea>
+                         <!--Textarea-->
+                        <div class="col-md-12 form-group">
+                            <label class="control-label" for="description">Description</label>
+                            <div>
+                                <textarea id="product-desc-field" class="form-control product-desc-field" name="description"
+                                    placeholder="Description" rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label class="control-label" for="productImages">Add Photos</label>
+                            <div>
+                                <input id="product-images-field" class="form-control-file inputfile" type="file"
+                                    name="productImages" data-show-upload="false" data-show-caption="true" multiple>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label id="product-category-field" class="control-label" for="category">Category</label>
+                            <div>
+                                <select name="category" class="form-control">
+                                    <option>Bear</option>
+                                    <option>Wine</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="control-label" for="productImages">Product Photos</label>
-                        <div>
-                            <input id="product-images-field" class="form-control-file inputfile" type="file"
-                                name="productImages" data-show-upload="false" data-show-caption="true" multiple>
+                    <div id="admin-image-cotainer">
+                        <!-- <label id="photo-viewer-label" class="control-label">Current Photos</label>
+                        <div id="admin-image-wrapper"> -->
+                        <!-- <div class="admin-img-div">
+                            <button id="admin-img-del_0" class="btn admin-img-trash"><i class="fa fa-trash"></i></button>
+                            <img id="admin-img_0" class="admin-img" src="../static/img/product-1.jpg">
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label id="product-category-field" class="control-label" for="category">Category</label>
-                        <div>
-                            <select name="category" class="form-control">
-                                <option>Bear</option>
-                                <option>Wine</option>
-                            </select>
+                        <div class="admin-img-div">
+                            <button id="admin-img-del_1" class="btn admin-img-trash"><i class="fa fa-trash"></i></button>
+                            <img id="admin-img_1" class="admin-img" src="../static/img/product-2.jpg">
                         </div>
+                        <div class="admin-img-div">
+                            <button id="admin-img-del_2" class="btn admin-img-trash"><i class="fa fa-trash"></i></button>
+                            <img id="admin-img_2" class="admin-img" src="../static/img/product-2.jpg">
+                        </div> -->
+                        <!-- </div> -->
+                    
                     </div>
 
                 </div>
