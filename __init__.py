@@ -674,10 +674,14 @@ def rem_from_products():
 @app.route("/get_products", methods=["GET"])
 def get_products():
 
+    searchbox_text = request.args.get("text")
+
     category = request.args.get("category")
     price_min = request.args.get("price_min")
     price_max = request.args.get("price_max")
 
+    if not searchbox_text:
+        searchbox_text = ""
     if not category:
         category = {"$exists": True}
     if not price_min:
@@ -693,14 +697,17 @@ def get_products():
 
     skips = limit * (page_number-1)
 
-    cursor = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).skip(skips).limit(limit)
+    total_documents = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gte": price_min, "$lte": price_max}}).count()
+    total_pages = math.ceil(total_documents/limit)
+
+    cursor = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gte": price_min, "$lte": price_max}}).skip(skips).limit(limit)
 
     output = []
 
     for i in cursor:
         output.append(i)
 
-    return dumps(output)
+    return dumps({'result':output, 'total_pages': total_pages})
 
     # starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
     # for i in starting_id:
@@ -719,36 +726,31 @@ def get_products():
     # next_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
     # prev_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
 
-    #return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
+    # return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
 
 
 # search products through search bar
-@app.route("/get_products_with_search", methods=["GET"])
-def get_products_with_search():
+# @app.route("/get_products_with_search", methods=["GET"])
+# def get_products_with_search():
 
-    searchbox_text = request.args.get("text")
+#     searchbox_text = request.args.get("text")
 
-    products = db["product_details"]
+#     products = db["product_details"]
 
-    #pagination
-    limit = int(request.args['limit'])
-    page_number = int(request.args['page_number'])
+#     #pagination
+#     limit = int(request.args['limit'])
+#     page_number = int(request.args['page_number'])
 
-    skips = limit * (page_number-1)
+#     skips = limit * (page_number-1)
 
-    # starting_id = products.find({'$text': { '$search':  '\"'+searchbox_text+'\"'}}).sort('_id', pymongo.ASCENDING)
-    # last_id = starting_id[page_number]['_id']
+#     #searched_products_with_page_limit = products.find({'name': { '$regex':  '\"'+searchbox_text+'\"', '$options': 'i'}}).skip(skips).limit(limit)
+#     searched_products_with_page_limit = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}}).skip(skips).limit(limit)
+#     output = []
 
-    searched_products_with_page_limit = products.find({'$text': { '$search':  '\"'+searchbox_text+'\"'}}).skip(skips).limit(limit)
-    output = []
+#     for i in searched_products_with_page_limit:
+#         output.append(i)
 
-    for i in searched_products_with_page_limit:
-        output.append(i);
-
-    # next_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
-    # prev_url = '/get_products_with_search?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
-
-    return dumps(output)
+#     return dumps(output)
 
 
 @app.route("/product_detail/<prod_id>", methods=["GET"])
