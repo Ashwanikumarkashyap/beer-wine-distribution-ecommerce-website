@@ -186,14 +186,15 @@ function getProductsWithSearch(searchQuery, pg, limit, category, minPrice, maxPr
 
     showLoader();
     $.ajax({
-        url: '/get_products_with_search',
+        url: '/get_products',
         type: 'GET',
         data: data,
         dataType: "json",
         success: function (response) {
             hideLoader();
             if (callback)
-                callback(response);
+                totalPages = response.total_pages
+                callback(response.products);
         },
         error: function (error) {
             hideLoader();

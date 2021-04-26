@@ -1,8 +1,9 @@
 let adminProducts = []
+let deletedImages;
 
 $( document ).ready(function() {
 
-    getProducts(1, pageLimit, null, null, null, createAdminList);
+    getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
 
     // should be called after creating every UI elements
     applyTemplateAnimation();
@@ -71,7 +72,7 @@ function attachListeners() {
             dataType: "json",
             success: function (response) {
                 console.log("success\n", response);
-                getProducts(1, pageLimit, null, null, null, createAdminList);
+                getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
                 
             },
             error: function (error) {
@@ -108,25 +109,27 @@ function attachListeners() {
         imageViewerHtml+= '</div>';
 
         $("#admin-image-cotainer").html(imageViewerHtml);
+
+        deletedImages = new Set()
         
         $( ".admin-img-restore" ).click(function( event ) {
             let id = $(this).attr('id').split('_')[1];
             $("#admin-img_" + id).css("filter", "none");
             $("#admin-img-del_" + id).css("display", "block");
             $(this).css("display", "none");
+
+            // remove image from deleted set
+            deletedImages.delete(id);
         });
 
         $( ".admin-img-trash" ).click(function( event ) {
             let id = $(this).attr('id').split('_')[1];
-            // if ($("#admin-img_" + id).css("filter") == "grayscale(1)") {
-            //     $("#admin-img_" + id).css("filter", "none");
-            // } else {
-            //     $("#admin-img_" + id).css("filter", "grayscale(1)");
-            // }
             $("#admin-img_" + id).css("filter", "grayscale(1)");
             $("#admin-img-restore_" + id).css("display", "block");
             $(this).css("display", "none");
-            
+
+            // add image to deleted set
+            deletedImages.add(id);
         });
 
         $(".admin-img-trash-restore").css("display", "none");
@@ -163,15 +166,7 @@ function attachListeners() {
 
 function addProduct() {
 
-    let prodReq = fetchFormDetails();
-    var fd = getFiles();
-
-    fd.append('name', prodReq.name);
-    fd.append('price', prodReq.price);
-    fd.append('brand', prodReq.brand);
-    fd.append('stock', prodReq.stock);
-    fd.append('description', prodReq.description);
-    fd.append('category', prodReq.category);
+    var fd = fetchFormDetails();
 
     showLoader();
 
@@ -186,7 +181,7 @@ function addProduct() {
             console.log("success\n", response);
             hideLoader();
             $('#edit-modal').modal('hide');
-            getProducts(1, pageLimit, null, null, null, createAdminList);
+            getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
         },
         error: function (error) {
             hideLoader();
@@ -195,12 +190,26 @@ function addProduct() {
     })
 }
 
+function fetchFormDetails() {
 
-function getFiles() {
     var fd = new FormData();
-    var files = $('#product-images-field')[0].files;
     
-    // Check file selected or not
+    let brand = $('#product-brand-field').val();
+    let name = $('#product-name-field').val();
+    let price = $('#product-price-field').val();
+    let qty = $('#product-qty-field').val();
+    let desc = $('#product-desc-field').val();
+    let category = $('#product-category-field').val();
+    
+    fd.append('name', name);
+    fd.append('price', price);
+    fd.append('brand', brand);
+    fd.append('stock', qty);
+    fd.append('description', desc);
+    fd.append('category', category);
+
+    // get uploaded files
+    var files = $('#product-images-field')[0].files;
     if(files.length > 0 ){
         for (let idx = 0; idx < files.length; idx++) {
             fd.append("files[]", files[idx]);
@@ -210,50 +219,58 @@ function getFiles() {
     return fd;
 }
 
-function fetchFormDetails() {
-    let brand = $('#product-brand-field').val();
-    let name = $('#product-name-field').val();
-    let price = $('#product-price-field').val();
-    let qty = $('#product-qty-field').val();
-    let desc = $('#product-desc-field').val();
-    let category = $('#product-category-field').val();
+// function editProduct() {
 
-    let images = ["../static/img/product-1.jpg", 
-            "../static/img/product-2.jpg", 
-            "../static/img/product-3.jpg",
-            "../static/img/product-4.jpg",
-            "../static/img/product-5.jpg" ];
-    
-    let prodReq = {
-        'name': name,
-        'price': price,
-        'brand': brand,
-        'stock': qty,
-        'description': desc,
-        'category': category,
-        'images': images,
-    }
+//     prodReq = fetchFormDetails();
+//     prodReq.product_id = adminProducts[prodIdx]._id.$oid;
 
-    return prodReq;
-}
+//     showLoader();
+//     $.ajax({
+//         type: "PUT",
+//         url: "/update_product_details",
+//         contentType: 'application/json; charset=utf-8',
+//         dataType: 'json',
+//         data: JSON.stringify(prodReq),
+//         success: function (response) {
+//             hideLoader();
+//             console.log("success\n", response);
+//             $('#edit-modal').modal('hide');
+//             getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
+            
+//         },
+//         error: function (error) {
+//             hideLoader();
+//             console.log('error', error);
+//         }
+//     })
+
+// }
 
 function editProduct() {
 
-    prodReq = fetchFormDetails();
-    prodReq.product_id = adminProducts[prodIdx]._id.$oid;
+    fd = fetchFormDetails();
+    fd.append('product_id', adminProducts[prodIdx]._id.$oid);
+    
+    // add images to be deleted from the server
+    let deletedImagesReq = []
+    for (let imageIdx of deletedImages) 
+        deletedImagesReq.push(adminProducts[prodIdx].images[imageIdx])
+
+    fd.append('deleted_images', deletedImagesReq);
 
     showLoader();
     $.ajax({
         type: "PUT",
         url: "/update_product_details",
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify(prodReq),
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: fd,
         success: function (response) {
             hideLoader();
             console.log("success\n", response);
             $('#edit-modal').modal('hide');
-            getProducts(1, pageLimit, null, null, null, createAdminList);
+            getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
             
         },
         error: function (error) {
@@ -268,7 +285,7 @@ function getPage(pageDiv) {
     let page = parseInt($(pageDiv).text());
     $('.active').removeClass("active");
     $(pageDiv).addClass("active");
-    getProducts(page, pageLimit, null, null, null, createAdminList);
+    getProductsWithSearch(null, page, pageLimit, null, null, null, createAdminList);
 }
 
 function nextPage() {
@@ -283,7 +300,7 @@ function nextPage() {
         $("next-page").removeClass("disabled");
     }
 
-    getProducts((pageNo+1), pageLimit, null, null, null, createAdminList);
+    getProductsWithSearch(null, (pageNo+1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){
         let page = parseInt($(this).text());
@@ -303,7 +320,7 @@ function prevPage() {
         $("prev-page").removeClass("disabled");
     }
 
-    getProducts((pageNo-1), pageLimit, null, null, null, createAdminList);
+    getProductsWithSearch(null, (pageNo-1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){ 
         let page = parseInt($(this).text());

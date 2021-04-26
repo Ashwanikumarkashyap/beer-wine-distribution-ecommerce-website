@@ -495,16 +495,32 @@ def update_product_details():
     user = session.get('user')
 
     if user and user['is_admin']:
-        request_json = request.json
 
-        product_id = request_json["product_id"]
-        name = request_json["name"]
-        brand = request_json["brand"]
-        description = request_json["description"]
-        stock = request_json["stock"]
-        category = request_json["category"]
-        price = request_json["price"]
-        images = request_json["images"]
+
+        name = request.form["name"]
+        brand = request.form["brand"]
+        description = request.form["description"]
+        stock = request.form["stock"]
+        category = request.form["category"]
+        price = request.form["price"]
+
+        # to delete images from server and db
+        deleted_images = request.form["deleted_images"]
+        # to add images from server and db
+        files = request.files.getlist('files[]')
+
+
+
+        # request_json = request.json
+        #
+        # product_id = request_json["product_id"]
+        # name = request_json["name"]
+        # brand = request_json["brand"]
+        # description = request_json["description"]
+        # stock = request_json["stock"]
+        # category = request_json["category"]
+        # price = request_json["price"]
+        # images = request_json["images"]
 
         # product_id = request.args.get("product_id")
 
@@ -707,7 +723,7 @@ def get_products():
     for i in cursor:
         output.append(i)
 
-    return dumps({'result':output, 'total_pages': total_pages})
+    return dumps({'products': output, 'total_pages': total_pages})
 
     # starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
     # for i in starting_id:
