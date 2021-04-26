@@ -4,7 +4,7 @@ $( document ).ready(function() {
 
 
     // getProducts(null, null, null, createProductList);
-    getProducts1(1, 12, null, null, null, createProductList);
+    // getProducts(1, pageLimit, null, null, null, createProductList);
     // createProductList(products);
 
     // should be called after creating every UI elements
@@ -41,4 +41,81 @@ function createProductList(products) {
         '</div>'
     })
     prodListPanel.html(prodListHtml)
+
+      
+    if ($('#my-pages').children().length == 0) {
+    // if ($("#my-pages").html().length == 0) {
+        let myPagesHtml = '';
+        for (let i=0; i<3 && i <totalPages; i++) {
+            if (i==0)
+                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item active"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+            else 
+                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+        }
+
+        if (totalPages <=3) {
+            $("#next-page").addClass("disabled");
+        }
+
+        $("#my-pages").html(myPagesHtml);
+    }
+
+}
+
+function getPage(pageDiv) {
+    let page = parseInt($(pageDiv).text());
+    $('.active').removeClass("active");
+    $(pageDiv).addClass("active");
+    getProducts(page, pageLimit, null, null, null, createProductList);
+}
+
+function nextPage() {
+    
+    let firstPageNo = parseInt($(".page-text").first().text());
+    let lastPgNo = parseInt($(".page-text").last().text());
+
+    if (lastPgNo == totalPages) {
+        $("next-page").addClass("disabled");
+        return;
+    } else {
+        $("next-page").removeClass("disabled");
+    }
+
+    getProducts((pageNo+1), pageLimit, null, null, null, createProductList);
+
+    $(".page-text").each(function(){
+        let page = parseInt($(this).text());
+        $(this).text(page+1);
+    });
+}
+
+function prevPage() {
+
+    let lastPgNo = parseInt($(".page-text").last().text());
+    let firstPageNo = parseInt($(".page-text").first().text());
+
+    if (firstPageNo == 1) {
+        $("prev-page").addClass("disabled");
+        return;
+    } else {
+        $("prev-page").removeClass("disabled");
+    }
+
+    getProducts((pageNo-1), pageLimit, null, null, null, createProductList);
+
+    $(".page-text").each(function(){ 
+        let page = parseInt($(this).text());
+        $(this).text(page-1);
+    });
+}
+
+function searchProduct(searchQuery) {
+    $("#filter-search").val(searchQuery);
+    if (searchQuery) {
+        getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createProductList);
+    } else {
+        let searchQuery = $('#search-input').val();
+        
+        getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createProductList);
+    }
 }

@@ -2,6 +2,9 @@ let isLoggedIn = false;
 
 let sliderData = ['slider-1.jpg', 'slider-2.jpg', 'slider-2.jpg'];
 
+let pageLimit = 5;
+let totalPages = 2;
+
 let products = [
     {   
         "id": 1,
@@ -68,6 +71,16 @@ let products = [
     },
 ];
 
+$( document ).ready(function() {
+
+    $('#search-input').keyup(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+            getSearchPage();  
+        }
+    });
+});
+
 
 // function creatLoginNav() {
 //     let userAccountNavHtml = '';
@@ -86,9 +99,42 @@ let products = [
 //     creatLoginNav.html(userAccountNavHtml)
 // }
 
-function getProducts(category, minPrice, maxPrice, callback) {
+// function getProducts(category, minPrice, maxPrice, callback) {
     
-    let data = {}
+//     let data = {}
+
+//     if (category) 
+//         data.category = category;        
+
+//     if (minPrice)
+//         data.min_price = minPrice
+
+//     if (maxPrice)
+//         data.max_price = max_price
+//     showLoader();
+//     $.ajax({
+//         url: '/get_products',
+//         type: 'GET',
+//         data: data,
+//         dataType: "json",
+//         success: function (response) {
+//             hideLoader();
+//             if (callback)
+//                 callback(response);
+//         },
+//         error: function (error) {
+//             hideLoader();
+//             console.log(error);
+//         }
+//     })
+// }
+
+function getProducts(pg, limit, category, minPrice, maxPrice, callback) {
+    
+    let data = {
+        'page_number': pg,
+        'limit': limit,
+    }
 
     if (category) 
         data.category = category;        
@@ -98,6 +144,7 @@ function getProducts(category, minPrice, maxPrice, callback) {
 
     if (maxPrice)
         data.max_price = max_price
+
     showLoader();
     $.ajax({
         url: '/get_products',
@@ -116,11 +163,16 @@ function getProducts(category, minPrice, maxPrice, callback) {
     })
 }
 
-function getProducts1(pg, limit, category, minPrice, maxPrice, callback) {
+
+function getProductsWithSearch(searchQuery, pg, limit, category, minPrice, maxPrice, callback) {
     
     let data = {
         'page_number': pg,
         'limit': limit,
+    }
+
+    if (searchQuery) {
+        data.text = searchQuery;
     }
 
     if (category) 
@@ -131,16 +183,17 @@ function getProducts1(pg, limit, category, minPrice, maxPrice, callback) {
 
     if (maxPrice)
         data.max_price = max_price
+
     showLoader();
     $.ajax({
-        url: '/get_products',
+        url: '/get_products_with_search',
         type: 'GET',
         data: data,
         dataType: "json",
         success: function (response) {
             hideLoader();
             if (callback)
-                callback(response.result);
+                callback(response);
         },
         error: function (error) {
             hideLoader();
@@ -179,11 +232,11 @@ function addToCart(productId, qty, isProdId, callback) {
     return false;
 }
 
-function addToFav(id, callback) {
-    let productId = id.split("-")[1];
-    console.log(`add to favourite called for id ${productId}`);
-    return false;
-}
+// function addToFav(id, callback) {
+//     let productId = id.split("-")[1];
+//     console.log(`add to favourite called for id ${productId}`);
+//     return false;
+// }
 
 function showLoader() {
     $("#loader-wrapper").css("display", "flex");
@@ -197,4 +250,11 @@ function getProdDetail(id, callback) {
     let productId = id.split("-")[1];
     window.location.href = `/product_detail/${productId}`;
     return false;
+}
+
+function getSearchPage() {
+    let searchQuery = $('#search-input').val();
+    if (searchQuery.trim() != "") {
+        window.location.href = `/get_search_page/${searchQuery}`;
+    }
 }

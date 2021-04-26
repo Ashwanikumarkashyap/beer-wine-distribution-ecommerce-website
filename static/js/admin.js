@@ -2,13 +2,10 @@ let adminProducts = []
 
 $( document ).ready(function() {
 
-    
+    getProducts(1, pageLimit, null, null, null, createAdminList);
 
     // should be called after creating every UI elements
     applyTemplateAnimation();
-    attachListeners();
-
-    // getProducts1(1, 15, null, null, null, createAdminList);
 });
 
 function createAdminList(products) {
@@ -39,8 +36,25 @@ function createAdminList(products) {
     });
 
     $("#admin-table").html(listHtml);
-    attachListeners();
     
+    if ($('#my-pages').children().length == 0) {
+    // if ($("#my-pages").html().length == 0) {
+        let myPagesHtml = '';
+        for (let i=0; i<3 && i <totalPages; i++) {
+            if (i==0)
+                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item active"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+            else 
+                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+        }
+
+        if (totalPages <=3) {
+            $("#next-page").addClass("disabled");
+        }
+
+        $("#my-pages").html(myPagesHtml);
+    }
+
+    attachListeners();
 }
 
 function attachListeners() {
@@ -57,7 +71,7 @@ function attachListeners() {
             dataType: "json",
             success: function (response) {
                 console.log("success\n", response);
-                getProducts(null, null, null, createAdminList);
+                getProducts(1, pageLimit, null, null, null, createAdminList);
                 
             },
             error: function (error) {
@@ -129,7 +143,6 @@ function addProduct() {
     $.ajax({
         type: "POST",
         url: "/add_to_products",
-        // contentType: 'application/json; charset=utf-8',
         cache: false,
         contentType: false,
         processData: false,
@@ -138,32 +151,13 @@ function addProduct() {
             console.log("success\n", response);
             hideLoader();
             $('#edit-modal').modal('hide');
-            getProducts(null, null, null, createAdminList);
+            getProducts(1, pageLimit, null, null, null, createAdminList);
         },
         error: function (error) {
             hideLoader();
             console.log('error', error);
         }
     })
-
-    // $.ajax({
-    //     type: "POST",
-    //     url: "/add_to_products",
-    //     contentType: 'application/json; charset=utf-8',
-    //     dataType: 'json',
-    //     data: JSON.stringify(prodReq),
-    //     success: function (response) {
-    //         console.log("success\n", response);
-    //         hideLoader();
-    //         $('#edit-modal').modal('hide');
-    //         getProducts(null, null, null, createAdminList);
-    //     },
-    //     error: function (error) {
-    //         hideLoader();
-    //         console.log('error', error);
-    //     }
-    // })
-
 }
 
 
@@ -179,24 +173,6 @@ function getFiles() {
     }
 
     return fd;
-    //     $.ajax({
-    //         url: 'upload.php',
-    //         type: 'post',
-    //         data: fd,
-    //         contentType: false,
-    //         processData: false,
-    //         success: function(response){
-    //             if(response != 0){
-    //             $("#img").attr("src",response); 
-    //             $(".preview img").show(); // Display image element
-    //             }else{
-    //             alert('file not uploaded');
-    //             }
-    //         },
-    //     });
-    // }else{
-    //     alert("Please select a file.");
-    // }
 }
 
 function fetchFormDetails() {
@@ -242,7 +218,7 @@ function editProduct() {
             hideLoader();
             console.log("success\n", response);
             $('#edit-modal').modal('hide');
-            getProducts(null, null, null, createAdminList);
+            getProducts(1, pageLimit, null, null, null, createAdminList);
             
         },
         error: function (error) {
@@ -251,4 +227,51 @@ function editProduct() {
         }
     })
 
+}
+
+function getPage(pageDiv) {
+    let page = parseInt($(pageDiv).text());
+    $('.active').removeClass("active");
+    $(pageDiv).addClass("active");
+    getProducts(page, pageLimit, null, null, null, createAdminList);
+}
+
+function nextPage() {
+    
+    let firstPageNo = parseInt($(".page-text").first().text());
+    let lastPgNo = parseInt($(".page-text").last().text());
+
+    if (lastPgNo == totalPages) {
+        $("next-page").addClass("disabled");
+        return;
+    } else {
+        $("next-page").removeClass("disabled");
+    }
+
+    getProducts((pageNo+1), pageLimit, null, null, null, createAdminList);
+
+    $(".page-text").each(function(){
+        let page = parseInt($(this).text());
+        $(this).text(page+1);
+    });
+}
+
+function prevPage() {
+
+    let lastPgNo = parseInt($(".page-text").last().text());
+    let firstPageNo = parseInt($(".page-text").first().text());
+
+    if (firstPageNo == 1) {
+        $("prev-page").addClass("disabled");
+        return;
+    } else {
+        $("prev-page").removeClass("disabled");
+    }
+
+    getProducts((pageNo-1), pageLimit, null, null, null, createAdminList);
+
+    $(".page-text").each(function(){ 
+        let page = parseInt($(this).text());
+        $(this).text(page-1);
+    });
 }

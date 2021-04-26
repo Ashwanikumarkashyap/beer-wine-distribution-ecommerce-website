@@ -38,3 +38,7 @@
     background: #d1cbcb !important;
     color: #8f7373 !important;
 }
+
+#my-pages {
+    display: flex;
+}

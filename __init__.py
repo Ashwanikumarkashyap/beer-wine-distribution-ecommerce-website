@@ -27,6 +27,7 @@ app.secret_key = 'my secret key'
 
 # PAGE RENDERS
 
+
 @app.route("/")
 def main():
     is_logged_in = False
@@ -85,6 +86,14 @@ def cart():
         return render_template('cart.html', is_logged_in=is_logged_in)
     else:
         return redirect("/login")
+
+
+@app.route("/get_search_page/<search_query>", methods=["GET"])
+def get_search_page(search_query):
+    is_logged_in = False
+    if session.get('user'):
+        is_logged_in = True
+    return render_template('product-list.html', is_logged_in=is_logged_in, search_query=search_query)
 
 # @app.route("/login")
 # def sign_up():
