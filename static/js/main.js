@@ -143,7 +143,7 @@ function getProducts(pg, limit, category, minPrice, maxPrice, callback) {
         data.min_price = minPrice
 
     if (maxPrice)
-        data.max_price = max_price
+        data.max_price = maxPrice
 
     showLoader();
     $.ajax({
@@ -182,7 +182,7 @@ function getProductsWithSearch(searchQuery, pg, limit, category, minPrice, maxPr
         data.min_price = minPrice
 
     if (maxPrice)
-        data.max_price = max_price
+        data.max_price = maxPrice
 
     showLoader();
     $.ajax({

@@ -5,6 +5,13 @@ $( document ).ready(function() {
 
     getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
 
+    $('#admin-search-input').keyup(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+            getAdminProducts();  
+        }
+    });
+
     // should be called after creating every UI elements
     applyTemplateAnimation();
 });
@@ -38,14 +45,15 @@ function createAdminList(products) {
 
     $("#admin-table").html(listHtml);
     
+   
     if ($('#my-pages').children().length == 0) {
     // if ($("#my-pages").html().length == 0) {
         let myPagesHtml = '';
         for (let i=0; i<3 && i <totalPages; i++) {
             if (i==0)
-                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item active"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+                myPagesHtml+=`<li onclick="getPage(this)" class="page-item active"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
             else 
-                myPagesHtml+=  `<li onclick="getPage(this)" class="page-item"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
+                myPagesHtml+=`<li onclick="getPage(this)" class="page-item"><a class="page-link page-text" href="#">${(i+1)}</a></li>`;
         }
 
         if (totalPages <=3) {
@@ -53,6 +61,12 @@ function createAdminList(products) {
         }
 
         $("#my-pages").html(myPagesHtml);
+    }
+
+    if (adminProducts.length <=0) {
+        $(".myadmin-page-wrapper").css("display", "none");
+    } else {
+        $(".myadmin-page-wrapper").css("display", "block");
     }
 
     attachListeners();
@@ -285,7 +299,13 @@ function getPage(pageDiv) {
     let page = parseInt($(pageDiv).text());
     $('.active').removeClass("active");
     $(pageDiv).addClass("active");
-    getProductsWithSearch(null, page, pageLimit, null, null, null, createAdminList);
+
+    let searchQuery = $("#admin-search-input").val();
+    if (searchQuery.trim()== "") {
+        searchQuery = null;
+    }
+
+    getProductsWithSearch(searchQuery, page, pageLimit, null, null, null, createAdminList);
 }
 
 function nextPage() {
@@ -300,7 +320,12 @@ function nextPage() {
         $("next-page").removeClass("disabled");
     }
 
-    getProductsWithSearch(null, (pageNo+1), pageLimit, null, null, null, createAdminList);
+    let searchQuery = $("#admin-search-input").val();
+    if (searchQuery.trim()== "") {
+        searchQuery = null;
+    }
+
+    getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){
         let page = parseInt($(this).text());
@@ -320,10 +345,23 @@ function prevPage() {
         $("prev-page").removeClass("disabled");
     }
 
-    getProductsWithSearch(null, (pageNo-1), pageLimit, null, null, null, createAdminList);
+    let searchQuery = $("#admin-search-input").val();
+    if (searchQuery.trim()== "") {
+        searchQuery = null;
+    }
+
+    getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){ 
         let page = parseInt($(this).text());
         $(this).text(page-1);
     });
+}
+
+function getAdminProducts() {
+    let searchQuery = $("#admin-search-input").val();
+    if (searchQuery.trim()!="") {
+        $("#my-pages").html("");
+        getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createAdminList);
+    }
 }

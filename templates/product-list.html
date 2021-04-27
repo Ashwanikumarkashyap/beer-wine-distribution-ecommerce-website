@@ -159,29 +159,39 @@
                                         <div class="col-md-4">
                                             <div class="product-search">
                                                 <input id="filter-search" type="email" placeholder="Search">
-                                                <button><i class="fa fa-search"></i></button>
+                                                <button onclick="filterSearch()"><i class="fa fa-search"></i></button>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="product-short">
-                                                <div class="dropdown">
+                                            <!-- <div class="product-short">
+                                                <div class="dropdown"> -->
                                                     <!-- <div class="dropdown-toggle" data-toggle="dropdown">Product short by</div>
                                                     <div class="dropdown-menu dropdown-menu-right">
                                                         <a href="#" class="dropdown-item">Newest</a>
                                                         <a href="#" class="dropdown-item">Popular</a>
                                                         <a href="#" class="dropdown-item">Most sale</a>
                                                     </div> -->
-                                                    <div class="dropdown-toggle" data-toggle="dropdown">Category</div>
+
+                                                    <!-- <div class="dropdown-toggle" data-toggle="dropdown">Category</div>
                                                     <div class="dropdown-menu dropdown-menu-right">
                                                         <a href="#" class="dropdown-item">None</a>
                                                         <a href="#" class="dropdown-item">Beer</a>
                                                         <a href="#" class="dropdown-item">Wine</a>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                    </div> -->
+                                            <select id="category-input" name="category" class="form-control">
+                                                <option selected="selected">Select Category</option>
+                                                <option>Bear</option>
+                                                <option>Wine</option>
+                                            </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="product-price-range">
+                                            <div class="row justify-content-around">
+                                                <input id="min-price-input" class="form-control col-md-5" type="number" name="minPrice"
+                                                    placeholder="Min Price" min="0" />
+                                                <input id="max-price-input" class="form-control col-md-5" type="number" name="maxPrice"
+                                                placeholder="Max Price" min="0" />
+                                            </div>
+                                            <!-- <div class="product-price-range">
                                                 <div class="dropdown">
                                                     <div class="dropdown-toggle" data-toggle="dropdown">Product price range</div>
                                                     <div class="dropdown-menu dropdown-menu-right">
@@ -197,7 +207,7 @@
                                                         <a href="#" class="dropdown-item">$451 to $500</a>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -460,7 +470,7 @@
                         </div>
                         
                         <!-- Pagination Start -->
-                        <div class="col-md-12">
+                        <div id="pagination-wrapper" class="col-md-12">
                             <nav aria-label="Page navigation example">
                                 <!-- <ul class="pagination justify-content-center">
                                     <li class="page-item disabled">
@@ -753,9 +763,9 @@
 
         <script type=text/javascript>
             {% if search_query is defined %}
-                searchProduct('{{ search_query }}');
+                searchProducts('{{ search_query }}');
             {% else %}
-                getProducts(1, pageLimit, null, null, null, createProductList);
+                getProductsWithSearch(null, 1, pageLimit, null, null, null, createProductList);
             {% endif %}
         </script>
 

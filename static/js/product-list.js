@@ -7,6 +7,13 @@ $( document ).ready(function() {
     // getProducts(1, pageLimit, null, null, null, createProductList);
     // createProductList(products);
 
+    $('#filter-search').keyup(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+            filterSearch();  
+        }
+    });
+
     // should be called after creating every UI elements
     applyTemplateAnimation();
 });
@@ -60,13 +67,26 @@ function createProductList(products) {
         $("#my-pages").html(myPagesHtml);
     }
 
+    if (products.length <=0) {
+        $("#pagination-wrapper").css("display", "none");
+    } else {
+        $("#pagination-wrapper").css("display", "block");
+    }
 }
 
 function getPage(pageDiv) {
     let page = parseInt($(pageDiv).text());
     $('.active').removeClass("active");
     $(pageDiv).addClass("active");
-    getProducts(page, pageLimit, null, null, null, createProductList);
+
+    // let searchQuery = $("#filter-search").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
+
+    // getProductsWithSearch(searchQuery, page, pageLimit, null, null, null, createProductList);
+
+    filterSearch(page);
 }
 
 function nextPage() {
@@ -81,7 +101,14 @@ function nextPage() {
         $("next-page").removeClass("disabled");
     }
 
-    getProducts((pageNo+1), pageLimit, null, null, null, createProductList);
+    // let searchQuery = $("#filter-search").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
+
+    // getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createProductList);
+
+    filterSearch((pageNo+1));
 
     $(".page-text").each(function(){
         let page = parseInt($(this).text());
@@ -101,7 +128,14 @@ function prevPage() {
         $("prev-page").removeClass("disabled");
     }
 
-    getProducts((pageNo-1), pageLimit, null, null, null, createProductList);
+    // let searchQuery = $("#filter-search").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
+
+    // getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createProductList);
+
+    filterSearch((pageNo-1));
 
     $(".page-text").each(function(){ 
         let page = parseInt($(this).text());
@@ -109,13 +143,45 @@ function prevPage() {
     });
 }
 
-function searchProduct(searchQuery) {
+function searchProducts(searchQuery) {
     $("#filter-search").val(searchQuery);
+    $("#my-pages").html("");
     if (searchQuery) {
         getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createProductList);
     } else {
         let searchQuery = $('#search-input').val();
-        
         getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createProductList);
     }
+}
+
+function filterSearch(page) {
+    let pageReq = 1;
+
+    if (page) {
+        pageReq = page;
+    } else {
+        $("#my-pages").html("");
+    }
+
+    let searchQuery = $("#filter-search").val();
+    if (searchQuery.trim() == "") {
+        searchQuery == null;
+    }
+
+    let cat = $("#category-input").val();
+    if (cat == "Select Category") {
+        cat = null;
+    }
+
+    let minPrice = $("#min-price-input").val();
+    if (minPrice == "") {
+        minPrice = null;
+    }
+
+    let maxPrice = $("#max-price-input").val();
+    if (maxPrice == "") {
+        maxPrice = null;
+    }
+
+    getProductsWithSearch(searchQuery, pageReq, pageLimit, cat, parseInt(minPrice), parseInt(maxPrice), createProductList);
 }
