@@ -331,11 +331,12 @@ def add_to_wishlist():
     except:
         return json.dumps({"status": "failed"})
 
-
 # completed
-@app.route("/add_to_cart", methods=["POST", "PUT"])
+@app.route("/add_to_cart", methods=["POST"])
 def add_to_cart():
+
     user = session.get('user')
+
     if user:
         request_json = request.json
 
@@ -351,25 +352,76 @@ def add_to_cart():
 
         db_check = collection.find_one({"customer_id": customer_id})
 
-        try:
+        if db_check:
+            updated_product_details, product_id_found, old_quantity = [], False, None
+            for product_data in db_check["product_ids"]:
+                if product_data["product_id"] == product_id:
+                    product_id_found = True
+                    old_quantity = product_data["quantity"]
+                    updated_product_details.append({"product_id": product_id, "quantity": int(quantity) + int(old_quantity)})
+                else:
+                    updated_product_details.append(product_data)
+        else:
+            collection.insert_one({
+                "customer_id": customer_id,
+                "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
+                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+            })
+            return json.dumps({"status": "success", "message": "new cart created for customer and product added"})
+        
+        if product_id_found:
+            price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * int(quantity)
+            collection.update_one({"customer_id": customer_id}, 
+                                {"$set": {"product_ids": updated_product_details,
+                                            "total_price": db_check["total_price"] + price_change}})
+            return json.dumps({"status": "success", "message": "exisiting product quantity updated"})
+        else:
+            total_price = db_check["total_price"]
+            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+            collection.update_one({"customer_id": customer_id},
+                                    {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
+                                            "total_price": total_price}})
+            return json.dumps({"status": "success", "message": "new product added to cart"})
 
-            if db_check:
-                total_price = db_check["total_price"]
-                total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
-                collection.update_one({"customer_id": customer_id},
-                                      {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
-                                                "total_price": total_price}})
-            else:
-                collection.insert_one({
-                    "customer_id": customer_id,
-                    "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
-                    "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
-                })
-            return json.dumps({"status": "success"})
-        except:
-            return json.dumps({"status": "failed"})
+# completed
+# old code
+# @app.route("/add_to_cart", methods=["POST", "PUT"])
+# def add_to_cart():
+#     user = session.get('user')
+#     if user:
+#         request_json = request.json
 
-    return json.dumps({"status": "failed"})
+#         customer_id = user['user_name']
+#         product_id = request_json["product_id"]
+#         quantity = request_json["quantity"]
+
+#         # customer_id = request.args.get("customer_id")
+#         # product_id = request.args.get("product_id")
+#         # quantity = request.args.get("quantity")
+
+#         collection = db["cart"]
+
+#         db_check = collection.find_one({"customer_id": customer_id})
+
+#         try:
+
+#             if db_check:
+#                 total_price = db_check["total_price"]
+#                 total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+#                 collection.update_one({"customer_id": customer_id},
+#                                       {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
+#                                                 "total_price": total_price}})
+#             else:
+#                 collection.insert_one({
+#                     "customer_id": customer_id,
+#                     "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
+#                     "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+#                 })
+#             return json.dumps({"status": "success"})
+#         except:
+#             return json.dumps({"status": "failed"})
+
+#     return json.dumps({"status": "failed"})
 
 
 # completed
@@ -433,8 +485,40 @@ def rem_from_cart():
     except:
         return json.dumps({"status": "failed"})
 
+# completed
+# @app.route("/update_cart", methods=["PUT"])
+# def update_cart():
 
-# incomplete
+#     customer_id = request.args.get("customer_id")
+#     product_id = request.args.get("product_id")
+#     quantity = request.args.get("quantity")
+
+#     collection = db["cart"]
+
+#     db_check = collection.find_one({"customer_id": customer_id})
+
+#     if db_check:
+#         updated_product_details, product_id_found, old_quantity = [], False, None
+#         for product_data in db_check["product_ids"]:
+#             if product_data["product_id"] == product_id:
+#                 product_id_found = True
+#                 old_quantity = product_data["quantity"]
+#                 updated_product_details.append({"product_id": product_id, "quantity": int(quantity)})
+#             else:
+#                 updated_product_details.append(product_data)
+#     else:
+#         return json.dumps({"status": "failed", "message": "customer id not found"})
+#     if product_id_found:
+#         change_in_quantity = int(quantity) - int(old_quantity)
+#         price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * change_in_quantity
+#         collection.update_one({"customer_id": customer_id}, 
+#                               {"$set": {"product_ids": updated_product_details,
+#                                         "total_price": db_check["total_price"] + price_change}})
+#         return json.dumps({"status": "success"})
+#     else:
+#         return json.dumps({"status": "failed"})
+
+# completed
 @app.route("/proceed_to_checkout", methods=["POST"])
 def proceed_to_checkout():
 
@@ -579,38 +663,38 @@ def update_product_details():
     return json.dumps({"status": "failed"})
 
 
-# completed
-@app.route("/update_cart", methods=["PUT"])
-def update_cart():
+# # completed
+# @app.route("/update_cart", methods=["PUT"])
+# def update_cart():
 
-    customer_id = request.args.get("customer_id")
-    product_id = request.args.get("product_id")
-    quantity = request.args.get("quantity")
+#     customer_id = request.args.get("customer_id")
+#     product_id = request.args.get("product_id")
+#     quantity = request.args.get("quantity")
 
-    collection = db["cart"]
+#     collection = db["cart"]
 
-    db_check = collection.find_one({"customer_id": customer_id})
+#     db_check = collection.find_one({"customer_id": customer_id})
 
-    if db_check:
-        updated_product_details, product_id_found, old_quantity = [], False, None
-        for product_data in db_check["product_ids"]:
-            if product_data["product_id"] == product_id:
-                product_id_found = True
-                old_quantity = product_data["quantity"]
-                updated_product_details.append({"product_id": product_id, "quantity": int(quantity)})
-            else:
-                updated_product_details.append(product_data)
-    else:
-        return json.dumps({"status": "failed", "message": "customer id not found"})
-    if product_id_found:
-        change_in_quantity = int(quantity) - int(old_quantity)
-        price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * change_in_quantity
-        collection.update_one({"customer_id": customer_id}, 
-                              {"$set": {"product_ids": updated_product_details,
-                                        "total_price": db_check["total_price"] + price_change}})
-        return json.dumps({"status": "success"})
-    else:
-        return json.dumps({"status": "failed"})
+#     if db_check:
+#         updated_product_details, product_id_found, old_quantity = [], False, None
+#         for product_data in db_check["product_ids"]:
+#             if product_data["product_id"] == product_id:
+#                 product_id_found = True
+#                 old_quantity = product_data["quantity"]
+#                 updated_product_details.append({"product_id": product_id, "quantity": int(quantity)})
+#             else:
+#                 updated_product_details.append(product_data)
+#     else:
+#         return json.dumps({"status": "failed", "message": "customer id not found"})
+#     if product_id_found:
+#         change_in_quantity = int(quantity) - int(old_quantity)
+#         price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * change_in_quantity
+#         collection.update_one({"customer_id": customer_id}, 
+#                               {"$set": {"product_ids": updated_product_details,
+#                                         "total_price": db_check["total_price"] + price_change}})
+#         return json.dumps({"status": "success"})
+#     else:
+#         return json.dumps({"status": "failed"})
 
 
 # DELETE FUNCTIONS
