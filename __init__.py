@@ -11,6 +11,7 @@ import re
 import phonenumbers
 from password_strength import PasswordPolicy
 from werkzeug.utils import secure_filename
+from flask import jsonify
 
 app = Flask(__name__)
 
@@ -144,7 +145,7 @@ def val_sign_up():
     # email address validation
     email_regex = r"^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
     if not re.search(email_regex, email_id):
-        return json.dumps({"status": "failed", "message": "invalid email address"})
+        return jsonify({"status": "failed", "message": "invalid email address"}), 406
 
     # password validation
     # policy = PasswordPolicy.from_names(
@@ -162,12 +163,12 @@ def val_sign_up():
     )
 
     if len(policy.test(password)) > 0:
-        return json.dumps({"status": "failed", "message": "password not strong enough"})
+        return jsonify({"status": "failed", "message": "password not strong enough"}), 406
     
     # phone number validation
     ph_number = phonenumbers.parse(str(contact_no), "US")
     if not phonenumbers.is_valid_number(ph_number):
-        return json.dumps({"status": "failed", "message": "invalid phone number"})
+        return jsonify({"status": "failed", "message": "invalid phone number"}), 406
 
     try:
         collection.insert_one({
@@ -190,9 +191,9 @@ def val_sign_up():
         #     secure=False
         # )
         session['user'] = {'user_name': user_name, 'is_admin': False}
-        return res
+        return res, 200
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed"}), 500
 
 
 # completed
@@ -230,9 +231,9 @@ def val_sign_in():
         #     domain=None,
         #     secure=False
         # )
-        return res
+        return res, 200
     
-    return json.dumps({"status": "failed", "message": "invalid login credentials"})
+    return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
 
 
 def allowed_file(filename):
@@ -296,10 +297,10 @@ def add_to_products():
 
             collection.update_one({"_id": ObjectId(prod_id)}, {"$set": {"images": images}})
 
-            return json.dumps({"status": "success"})
+            return json.dumps({"status": "success"}), 200
         except:
-            return json.dumps({"status": "failed"})
-    return json.dumps({"status": "failed"})
+            return json.dumps({"status": "failed"}), 500
+    return json.dumps({"status": "failed"}), 403
 
 # POST/PUT FUNCTIONS
 
@@ -326,10 +327,10 @@ def add_to_wishlist():
                 "product_ids": [product_id]
             })
 
-        return json.dumps({"status": "success"})
+        return json.dumps({"status": "success"}), 200
     
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed"}), 500
 
 # completed
 @app.route("/add_to_cart", methods=["POST"])
@@ -367,21 +368,21 @@ def add_to_cart():
                 "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
                 "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
             })
-            return json.dumps({"status": "success", "message": "new cart created for customer and product added"})
+            return json.dumps({"status": "success", "message": "new cart created for customer and product added"}), 200
         
         if product_id_found:
             price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * int(quantity)
             collection.update_one({"customer_id": customer_id}, 
                                 {"$set": {"product_ids": updated_product_details,
                                             "total_price": db_check["total_price"] + price_change}})
-            return json.dumps({"status": "success", "message": "exisiting product quantity updated"})
+            return json.dumps({"status": "success", "message": "exisiting product quantity updated"}), 200
         else:
             total_price = db_check["total_price"]
             total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
             collection.update_one({"customer_id": customer_id},
                                     {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
                                             "total_price": total_price}})
-            return json.dumps({"status": "success", "message": "new product added to cart"})
+            return json.dumps({"status": "success", "message": "new product added to cart"}), 200
 
 # completed
 # old code
@@ -445,10 +446,10 @@ def rem_from_wishlist():
             else:
                 return json.dumps({"status": "failed"})
         else:
-            return json.dumps({"status": "failed", "message": "customer id not found"})
-        return json.dumps({"status": "success"})
+            return json.dumps({"status": "failed", "message": "customer id not found"}), 404
+        return json.dumps({"status": "success"}), 200
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed"}), 500
 
 
 # completed
@@ -478,12 +479,12 @@ def rem_from_cart():
                                       {"$set": {"product_ids": updated_product_ids,
                                                 "total_price": current_total_price - price_of_removed_product}})
             else:
-                return json.dumps({"status": "failed"})
+                return json.dumps({"status": "failed", "message": "product id not found"}), 406
         else:
-            return json.dumps({"status": "failed", "message": "customer id not found"})
-        return json.dumps({"status": "success"})
+            return json.dumps({"status": "failed", "message": "customer id not found"}), 406
+        return json.dumps({"status": "success"}), 200
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed"}), 500
 
 # completed
 # @app.route("/update_cart", methods=["PUT"])
@@ -564,12 +565,12 @@ def proceed_to_checkout():
             
             db["cart"].delete_one({"customer_id": customer_id})
 
-            return json.dumps({"status": "success"})
+            return json.dumps({"status": "success"}), 200
         else:
-            return json.dumps({"status": "failed", "message": "quantity of a product more than inventory stock"})
+            return json.dumps({"status": "failed", "message": "quantity of a product more than inventory stock"}), 406
 
     else:
-        return json.dumps({"status": "failed", "message": "customer id not found"})
+        return json.dumps({"status": "failed", "message": "customer id not found"}), 406
 
 
 # completed
@@ -653,14 +654,14 @@ def update_product_details():
                                 db["cart"].update_one({"_id": ObjectId(entry["_id"])},
                                                     {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
 
-                return json.dumps({"status": "success"})
+                return json.dumps({"status": "success"}), 200
 
             else:
-                return json.dumps({"status": "failed", "message": "product id not found"})
+                return json.dumps({"status": "failed", "message": "product id not found"}), 406
 
         except:
-            return json.dumps({"status": "failed"})
-    return json.dumps({"status": "failed"})
+            return json.dumps({"status": "failed"}), 500
+    return json.dumps({"status": "failed"}), 401
 
 
 # # completed
@@ -709,9 +710,9 @@ def empty_wishlist():
 
     try:
         collection.delete_one({"customer_id": customer_id})
-        return json.dumps({"status": "success"})
+        return json.dumps({"status": "success"}), 200
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
 
 
 # completed
@@ -724,9 +725,9 @@ def empty_cart():
 
     try:
         collection.delete_one({"customer_id": customer_id})
-        return json.dumps({"status": "success"})
+        return json.dumps({"status": "success"}), 200
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
 
 
 # completed
@@ -759,13 +760,13 @@ def rem_from_products():
                     db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
                                           {"$set": {"product_ids": updated_product_ids}})
 
-            return json.dumps({"status": "success"})
+            return json.dumps({"status": "success"}), 200
 
         else:
-            return json.dumps({"status": "failed", "message": "product id not found"})
+            return json.dumps({"status": "failed", "message": "product id not found"}), 406
     
     except:
-        return json.dumps({"status": "failed"})
+        return json.dumps({"status": "failed"}), 500
 
 
 # GET FUNCTIONS
@@ -807,7 +808,7 @@ def get_products():
     for i in cursor:
         output.append(i)
 
-    return dumps({'products': output, 'total_pages': total_pages})
+    return dumps({'products': output, 'total_pages': total_pages}), 200
 
     # starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
     # for i in starting_id:
@@ -876,9 +877,9 @@ def get_cart():
         for index, product in enumerate(customer_cart["product_ids"]):
             product_id = product["product_id"]
             customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one({"_id": ObjectId(product_id)})
-        return dumps(customer_cart)
+        return dumps(customer_cart), 200
 
-    return json.dumps({"status": "failed"})
+    return json.dumps({"status": "failed"}), 401
 
 
 # completed
@@ -886,7 +887,7 @@ def get_cart():
 def get_wishlist():
     customer_id = request.args.get("customer_id")
     wishlist = db["wishlist"]
-    return dumps(list(wishlist.find({"customer_id": customer_id})))
+    return dumps(list(wishlist.find({"customer_id": customer_id}))), 200
 
 
 # completed
@@ -896,7 +897,7 @@ def get_orders():
     if not customer_id:
         customer_id = {"$exists": True}
     orders = db["orders"]
-    return dumps(list(orders.find({"customer_id": customer_id})))
+    return dumps(list(orders.find({"customer_id": customer_id}))), 200
 
 
 if __name__ == "__main__":
