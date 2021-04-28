@@ -799,8 +799,8 @@ def get_products():
 
     total_documents = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gt": price_min, "$lt": price_max}}).count()
     total_pages = math.ceil(total_documents/limit)
-    price_min = int(price_min)
-    price_max = int(price_max)
+    price_min = float(price_min)
+    price_max = float(price_max)
 
     cursor = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
  
