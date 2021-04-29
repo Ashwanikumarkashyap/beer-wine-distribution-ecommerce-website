@@ -74,6 +74,19 @@
                             </div> -->
                         </div>
                         <div id="user-account-nav" class="navbar-nav ml-auto">
+                            {%- if is_logged_in -%}
+                                <a href="/account" class="nav-item nav-link">My Account</a>
+                            {% endif %}
+                                    
+                            {%- if not is_logged_in -%}
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">User Account</a>
+                                    <div class="dropdown-menu">
+                                        <a href="/login" class="dropdown-item">Login</a>
+                                        <a href="/login" class="dropdown-item">Register</a>
+                                    </div>
+                                </div>
+                            {% endif %}
                             <!-- <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">User Account</a>
                                 <div class="dropdown-menu">
@@ -141,7 +154,7 @@
                     <div class="col-lg-8">
                         <div class="checkout-inner">
                             <div class="billing-address">
-                                <h2>Billing Address</h2>
+                                <h2>Shipping Address</h2>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label>First Name</label>
@@ -184,7 +197,7 @@
                                         <label>ZIP Code</label>
                                         <input class="form-control" type="text" placeholder="ZIP Code">
                                     </div>
-                                    <div class="col-md-12">
+                                    <!-- <div class="col-md-12">
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" class="custom-control-input" id="newaccount">
                                             <label class="custom-control-label" for="newaccount">Create an account</label>
@@ -195,11 +208,11 @@
                                             <input type="checkbox" class="custom-control-input" id="shipto">
                                             <label class="custom-control-label" for="shipto">Ship to different address</label>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
 
-                            <div class="shipping-address">
+                            <!-- <div class="shipping-address">
                                 <h2>Shipping Address</h2>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -244,12 +257,12 @@
                                         <input class="form-control" type="text" placeholder="ZIP Code">
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="checkout-inner">
-                            <div class="checkout-summary">
+                            <div id="cart-summary" class="checkout-summary">
                                 <h1>Cart Total</h1>
                                 <p>Product Name<span>$99</span></p>
                                 <p class="sub-total">Sub Total<span>$99</span></p>
@@ -271,7 +284,7 @@
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="payment-method">
+                                    <!-- <div class="payment-method">
                                         <div class="custom-control custom-radio">
                                             <input type="radio" class="custom-control-input" id="payment-2" name="payment">
                                             <label class="custom-control-label" for="payment-2">Payoneer</label>
@@ -281,8 +294,8 @@
                                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras tincidunt orci ac eros volutpat maximus lacinia quis diam.
                                             </p>
                                         </div>
-                                    </div>
-                                    <div class="payment-method">
+                                    </div> -->
+                                    <!-- <div class="payment-method">
                                         <div class="custom-control custom-radio">
                                             <input type="radio" class="custom-control-input" id="payment-3" name="payment">
                                             <label class="custom-control-label" for="payment-3">Check Payment</label>
@@ -292,7 +305,7 @@
                                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras tincidunt orci ac eros volutpat maximus lacinia quis diam.
                                             </p>
                                         </div>
-                                    </div>
+                                    </div> -->
                                     <div class="payment-method">
                                         <div class="custom-control custom-radio">
                                             <input type="radio" class="custom-control-input" id="payment-4" name="payment">
@@ -307,7 +320,7 @@
                                     <div class="payment-method">
                                         <div class="custom-control custom-radio">
                                             <input type="radio" class="custom-control-input" id="payment-5" name="payment">
-                                            <label class="custom-control-label" for="payment-5">Cash on Delivery</label>
+                                            <label class="custom-control-label" for="payment-5">Credit/Debit Card</label>
                                         </div>
                                         <div class="payment-content" id="payment-5-show">
                                             <p>
@@ -317,7 +330,7 @@
                                     </div>
                                 </div>
                                 <div class="checkout-btn">
-                                    <button>Place Order</button>
+                                    <button onclick="placeOrder()">Place Order</button>
                                 </div>
                             </div>
                         </div>

@@ -140,10 +140,10 @@ function getProducts(pg, limit, category, minPrice, maxPrice, callback) {
         data.category = category;        
 
     if (minPrice)
-        data.min_price = minPrice
+        data.price_min = minPrice
 
     if (maxPrice)
-        data.max_price = maxPrice
+        data.price_max = maxPrice
 
     showLoader();
     $.ajax({
@@ -179,10 +179,10 @@ function getProductsWithSearch(searchQuery, pg, limit, category, minPrice, maxPr
         data.category = category;        
 
     if (minPrice)
-        data.min_price = minPrice
+        data.price_min = minPrice
 
     if (maxPrice)
-        data.max_price = maxPrice
+        data.price_max = maxPrice
 
     showLoader();
     $.ajax({
@@ -258,4 +258,24 @@ function getSearchPage() {
     if (searchQuery.trim() != "") {
         window.location.href = `/get_search_page/${searchQuery}`;
     }
+}
+
+function getCart(callback) {
+
+    showLoader();
+    $.ajax({
+        url: '/get_cart',
+        type: 'GET',
+        dataType: "json",
+        success: function (response) {
+            hideLoader();
+            cartData = response;
+            if (callback)
+                callback(response);
+        },
+        error: function (error) {
+            hideLoader();
+            console.log(error);
+        }
+    })
 }

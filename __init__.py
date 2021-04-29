@@ -26,8 +26,12 @@ UPLOAD_DEST = 'static/prod_images/'
 
 app.secret_key = 'my secret key'
 
-# PAGE RENDERS
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# PAGE RENDERS
 
 @app.route("/")
 def main():
@@ -89,12 +93,22 @@ def cart():
         return redirect("/login")
 
 
+@app.route("/checkout")
+def checkout():
+    if session.get('user'):
+        is_logged_in = True
+        return render_template('checkout.html', is_logged_in=is_logged_in)
+    else:
+        return redirect("/login")
+
+
 @app.route("/get_search_page/<search_query>", methods=["GET"])
 def get_search_page(search_query):
     is_logged_in = False
     if session.get('user'):
         is_logged_in = True
     return render_template('product-list.html', is_logged_in=is_logged_in, search_query=search_query)
+
 
 # @app.route("/login")
 # def sign_up():
@@ -164,14 +178,14 @@ def val_sign_up():
 
     if len(policy.test(password)) > 0:
         return jsonify({"status": "failed", "message": "password not strong enough"}), 406
-    
+
     # phone number validation
     ph_number = phonenumbers.parse(str(contact_no), "US")
     if not phonenumbers.is_valid_number(ph_number):
         return jsonify({"status": "failed", "message": "invalid phone number"}), 406
 
     try:
-        collection.insert_one({
+        user_id = collection.insert_one({
             "user_name": user_name,
             "full_name": full_name,
             "email_id": email_id,
@@ -180,7 +194,7 @@ def val_sign_up():
             "contact_no": contact_no,
             "govt_id": govt_id,
             "isAdmin": False
-        })
+        }).inserted_id
         res = make_response(json.dumps({"status": "success"}))
         # res.set_cookie(
         #     "data",
@@ -190,7 +204,7 @@ def val_sign_up():
         #     domain=None,
         #     secure=False
         # )
-        session['user'] = {'user_name': user_name, 'is_admin': False}
+        session['user'] = {'user_name': user_name, 'user_id': user_id, 'is_admin': False}
         return res, 200
     except:
         return json.dumps({"status": "failed"}), 500
@@ -205,7 +219,6 @@ def val_sign_in():
     password = request_json["password"]
 
     is_admin = request_json["is_admin"]
-
 
     # user_name = request.args.get("user_name")
     # password = request.args.get("password")
@@ -222,7 +235,7 @@ def val_sign_in():
             "status": "success",
         }))
 
-        session['user'] = {'user_name': user_name, 'is_admin': is_admin}
+        session['user'] = {'user_name': user_name, 'user_id': str(db_check['_id']), 'is_admin': is_admin}
         # res.set_cookie(
         #     "data",
         #     max_age=3600,
@@ -232,18 +245,13 @@ def val_sign_in():
         #     secure=False
         # )
         return res, 200
-    
+
     return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # completed
 @app.route("/add_to_products", methods=["POST"])
 def add_to_products():
-
     user = session.get('user')
 
     if user and user['is_admin']:
@@ -302,46 +310,47 @@ def add_to_products():
             return json.dumps({"status": "failed"}), 500
     return json.dumps({"status": "failed"}), 403
 
+
 # POST/PUT FUNCTIONS
 
+#
+# # completed
+# @app.route("/add_to_wishlist", methods=["POST", "PUT"])
+# def add_to_wishlist():
+#
+#     customer_id = request.args.get("customer_id")
+#     product_id = request.args.get("product_id")
+#
+#     collection = db["wishlist"]
+#
+#     db_check = collection.find_one({"customer_id": customer_id})
+#
+#     try:
+#
+#         if db_check:
+#             collection.update_one({"customer_id": customer_id},
+#             {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id]))}})
+#         else:
+#             collection.insert_one({
+#                 "customer_id": customer_id,
+#                 "product_ids": [product_id]
+#             })
+#
+#         return json.dumps({"status": "success"}), 200
+#
+#     except:
+#         return json.dumps({"status": "failed"}), 500
 
-# completed
-@app.route("/add_to_wishlist", methods=["POST", "PUT"])
-def add_to_wishlist():
-
-    customer_id = request.args.get("customer_id")
-    product_id = request.args.get("product_id")
-
-    collection = db["wishlist"]
-
-    db_check = collection.find_one({"customer_id": customer_id})
-
-    try:
-
-        if db_check:
-            collection.update_one({"customer_id": customer_id}, 
-            {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id]))}})
-        else:
-            collection.insert_one({
-                "customer_id": customer_id,
-                "product_ids": [product_id]
-            })
-
-        return json.dumps({"status": "success"}), 200
-    
-    except:
-        return json.dumps({"status": "failed"}), 500
 
 # completed
 @app.route("/add_to_cart", methods=["POST"])
 def add_to_cart():
-
     user = session.get('user')
 
     if user:
         request_json = request.json
 
-        customer_id = user['user_name']
+        customer_id = user['user_id']
         product_id = request_json["product_id"]
         quantity = request_json["quantity"]
 
@@ -359,30 +368,35 @@ def add_to_cart():
                 if product_data["product_id"] == product_id:
                     product_id_found = True
                     old_quantity = product_data["quantity"]
-                    updated_product_details.append({"product_id": product_id, "quantity": int(quantity) + int(old_quantity)})
+                    updated_product_details.append(
+                        {"product_id": product_id, "quantity": int(quantity) + int(old_quantity)})
                 else:
                     updated_product_details.append(product_data)
         else:
             collection.insert_one({
                 "customer_id": customer_id,
                 "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
-                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+                "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(
+                    quantity)
             })
             return json.dumps({"status": "success", "message": "new cart created for customer and product added"}), 200
-        
+
         if product_id_found:
             price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * int(quantity)
-            collection.update_one({"customer_id": customer_id}, 
-                                {"$set": {"product_ids": updated_product_details,
+            collection.update_one({"customer_id": customer_id},
+                                  {"$set": {"product_ids": updated_product_details,
                                             "total_price": db_check["total_price"] + price_change}})
             return json.dumps({"status": "success", "message": "exisiting product quantity updated"}), 200
         else:
             total_price = db_check["total_price"]
-            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
+            total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(
+                quantity)
             collection.update_one({"customer_id": customer_id},
-                                    {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
+                                  {"$set": {"product_ids": list(db_check["product_ids"] + [
+                                      {"product_id": product_id, "quantity": int(quantity)}]),
                                             "total_price": total_price}})
             return json.dumps({"status": "success", "message": "new product added to cart"}), 200
+
 
 # completed
 # old code
@@ -425,74 +439,75 @@ def add_to_cart():
 #     return json.dumps({"status": "failed"})
 
 
+# # completed
+# @app.route("/rem_from_wishlist", methods=["PUT"])
+# def rem_from_wishlist():
+#
+#     customer_id = request.args.get("customer_id")
+#     product_id = request.args.get("product_id")
+#
+#     collection = db["wishlist"]
+#
+#     db_check = collection.find_one({"customer_id": customer_id})
+#
+#     try:
+#         if db_check:
+#             if product_id in db_check["product_ids"]:
+#                 temp_product_ids = db_check["product_ids"]
+#                 temp_product_ids.remove(product_id)
+#                 collection.update_one({"customer_id": customer_id},
+#                                       {"$set": {"product_ids": list(set(temp_product_ids))}})
+#             else:
+#                 return json.dumps({"status": "failed"})
+#         else:
+#             return json.dumps({"status": "failed", "message": "customer id not found"}), 404
+#         return json.dumps({"status": "success"}), 200
+#     except:
+#         return json.dumps({"status": "failed"}), 500
+
+
+# # completed
+# @app.route("/rem_from_cart", methods=["PUT"])
+# def rem_from_cart():
+#
+#     customer_id = request.args.get("customer_id")
+#     product_id = request.args.get("product_id")
+#
+#     collection = db["cart"]
+#
+#     db_check = collection.find_one({"customer_id": customer_id})
+#
+#     try:
+#         if db_check:
+#             current_total_price = float(db_check["total_price"])
+#             product_ids = [entry["product_id"] for entry in db_check["product_ids"]]
+#             if product_id in product_ids:
+#                 temp_product_ids = db_check["product_ids"]
+#                 price_of_removed_product, updated_product_ids = 0, []
+#                 for entry in temp_product_ids:
+#                     if entry.get("product_id") == product_id:
+#                         price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * entry.get("quantity")
+#                     else:
+#                         updated_product_ids.append(entry)
+#                 collection.update_one({"customer_id": customer_id},
+#                                       {"$set": {"product_ids": updated_product_ids,
+#                                                 "total_price": current_total_price - price_of_removed_product}})
+#             else:
+#                 return json.dumps({"status": "failed", "message": "product id not found"}), 406
+#         else:
+#             return json.dumps({"status": "failed", "message": "customer id not found"}), 406
+#         return json.dumps({"status": "success"}), 200
+#     except:
+#         return json.dumps({"status": "failed"}), 500
+
+
 # completed
-@app.route("/rem_from_wishlist", methods=["PUT"])
-def rem_from_wishlist():
-
-    customer_id = request.args.get("customer_id")
-    product_id = request.args.get("product_id")
-
-    collection = db["wishlist"]
-
-    db_check = collection.find_one({"customer_id": customer_id})
-
-    try:
-        if db_check:
-            if product_id in db_check["product_ids"]:
-                temp_product_ids = db_check["product_ids"]
-                temp_product_ids.remove(product_id)
-                collection.update_one({"customer_id": customer_id}, 
-                                      {"$set": {"product_ids": list(set(temp_product_ids))}})
-            else:
-                return json.dumps({"status": "failed"})
-        else:
-            return json.dumps({"status": "failed", "message": "customer id not found"}), 404
-        return json.dumps({"status": "success"}), 200
-    except:
-        return json.dumps({"status": "failed"}), 500
-
-
-# completed
-@app.route("/rem_from_cart", methods=["PUT"])
-def rem_from_cart():
-
-    customer_id = request.args.get("customer_id")
-    product_id = request.args.get("product_id")
-
-    collection = db["cart"]
-
-    db_check = collection.find_one({"customer_id": customer_id})
-
-    try:
-        if db_check:
-            current_total_price = float(db_check["total_price"])
-            product_ids = [entry["product_id"] for entry in db_check["product_ids"]]
-            if product_id in product_ids:
-                temp_product_ids = db_check["product_ids"]
-                price_of_removed_product, updated_product_ids = 0, []
-                for entry in temp_product_ids:
-                    if entry.get("product_id") == product_id:
-                        price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * entry.get("quantity")
-                    else:
-                        updated_product_ids.append(entry)
-                collection.update_one({"customer_id": customer_id}, 
-                                      {"$set": {"product_ids": updated_product_ids,
-                                                "total_price": current_total_price - price_of_removed_product}})
-            else:
-                return json.dumps({"status": "failed", "message": "product id not found"}), 406
-        else:
-            return json.dumps({"status": "failed", "message": "customer id not found"}), 406
-        return json.dumps({"status": "success"}), 200
-    except:
-        return json.dumps({"status": "failed"}), 500
-
-
-# completed
-@app.route("/proceed_to_checkout", methods=["POST"])
-def proceed_to_checkout():
-
-    customer_id = request.args.get("customer_id")
-    shipping_address = request.args.get("shipping_address")
+@app.route("/place_order", methods=["POST"])
+def place_order():
+    customer_id = session.get('user')['user_id']
+    # customer_id = request.args.get("customer_id")
+    shipping_address = request.json["shipping_address"]
+    # shipping_address = request.args.get("shipping_address")
 
     if not shipping_address:
         shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["address"]
@@ -503,7 +518,7 @@ def proceed_to_checkout():
 
     if db_check:
 
-        # check whether quantity of products exisits in inventory stock
+        # check whether quantity of products exists in inventory stock
         products_present_in_inventory = True
         store_queries_to_run = []
         for product_data in db_check["product_ids"]:
@@ -514,23 +529,32 @@ def proceed_to_checkout():
                     products_present_in_inventory = False
                     break
                 else:
-                    store_queries_to_run.append({"product_id": product_id, "stock": int(product_in_db["stock"]) - int(product_quantity)})
-        
+                    store_queries_to_run.append(
+                        {"product_id": product_id, "stock": int(product_in_db["stock"]) - int(product_quantity)})
+
         if products_present_in_inventory:
             for queries in store_queries_to_run:
                 db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
                                                  {"$set": {"stock": queries["stock"]}})
-        
+
+            # add the current cart to order to fetch the order details in user dashboard
+            customer_cart = db_check
+            for index, product in enumerate(db_check["product_ids"]):
+                product_id = product["product_id"]
+                customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                    {"_id": ObjectId(product_id)})
+
+            shipping = round(max(12, 0.15 * float(db_check["total_price"])), 2)
             db["orders"].insert_one({
                 "customer_id": customer_id,
                 "shipping_address": shipping_address,
                 "order_date": datetime.datetime.now(),
-                "product_ids": db_check["product_ids"],
-                "total_price": float(db_check["total_price"]),
-                "total_price_post_charges": float(db_check["total_price"]) + 0.5 * float(db_check["total_price"]),
+                # "product_ids": db_check["product_ids"],
+                "customer_cart": customer_cart,
+                "total_price_post_charges": round((float(db_check["total_price"]) + shipping), 2),
                 "order_status": "order received"
             })
-            
+
             db["cart"].delete_one({"customer_id": customer_id})
 
             return json.dumps({"status": "success"}), 200
@@ -544,11 +568,9 @@ def proceed_to_checkout():
 # completed
 @app.route("/update_product_details", methods=["PUT"])
 def update_product_details():
-
     user = session.get('user')
 
     if user and user['is_admin']:
-
 
         name = request.form["name"]
         brand = request.form["brand"]
@@ -558,11 +580,9 @@ def update_product_details():
         price = request.form["price"]
 
         # to delete images from server and db
-        deleted_images = request.form["deleted_images"]
+        deleted_images = request.form["deleted_images"].split(',')
         # to add images from server and db
         files = request.files.getlist('files[]')
-
-
 
         # request_json = request.json
         #
@@ -593,34 +613,36 @@ def update_product_details():
 
                 if name:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"name": name}})
+                                          {"$set": {"name": name}})
 
                 if brand:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"brand": brand}})
+                                          {"$set": {"brand": brand}})
                 if description:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"description": description}})
+                                          {"$set": {"description": description}})
                 if stock:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"stock": int(stock)}})
+                                          {"$set": {"stock": int(stock)}})
                 if category:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"category": category}})
+                                          {"$set": {"category": category}})
                 if images:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"images": images}})
+                                          {"$set": {"images": images}})
                 if price:
                     price_change = float(price) - float(db_check["price"])
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"price": float(price)}})
+                                          {"$set": {"price": float(price)}})
 
                     # put the change in everyones cart who has the updated product_id
                     for entry in db["cart"].find():
                         for product_data in entry["product_ids"]:
                             if product_data["product_id"] == product_id:
                                 db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-                                                    {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
+                                                      {"$set": {
+                                                          "total_price": float(entry["total_price"]) + price_change *
+                                                                         product_data["quantity"]}})
 
                 return json.dumps({"status": "success"}), 200
 
@@ -667,23 +689,26 @@ def update_product_details():
 
 @app.route("/update_cart", methods=["PUT"])
 def update_cart():
-
-    cart_object = request.json
+    cart_object = request.json['cart']
 
     collection = db["cart"]
 
-    total_price = 0
-    for products in cart_object["product_ids"]:
-        product_details = db["product_details"].find_one({"_id": ObjectId(products["product_id"])})
-        if product_details:
-            total_price += float(products["quantity"]) * float(product_details["price"])
-        else:
-            return json.dumps({"status": "failed", "message": "product_id not found"}), 406
-    
+    # total_price = 0
+    # for products in cart_object["product_ids"]:
+    #     product_details = db["product_details"].find_one({"_id": ObjectId(products["product_id"])})
+    #     if product_details:
+    #         total_price += float(products["quantity"]) * float(product_details["price"])
+    #     else:
+    #         return json.dumps({"status": "failed", "message": "product_id not found"}), 406
+
+    # try:
+    #     collection.update_one({"customer_id": cart_object["customer_id"]},
+    #                           {"$set": {"product_ids": cart_object["product_ids"],
+    #                                     "total_price": total_price}})
     try:
-        collection.update_one({"customer_id": cart_object["customer_id"]}, 
-                              {"$set": {"product_ids": cart_object["product_ids"], 
-                                        "total_price": total_price}})
+        collection.update_one({"customer_id": cart_object["customer_id"]},
+                              {"$set": {"product_ids": cart_object["product_ids"],
+                                        "total_price": cart_object["total_price"]}})
         return json.dumps({"status": "success"}), 200
     except:
         return json.dumps({"status": "failed"}), 500
@@ -691,40 +716,39 @@ def update_cart():
 
 # DELETE FUNCTIONS
 
-# completed
-@app.route("/clear_wishlist", methods=["DELETE"])
-def empty_wishlist():
+# # completed
+# @app.route("/clear_wishlist", methods=["DELETE"])
+# def empty_wishlist():
+#
+#     customer_id = request.args.get("customer_id")
+#
+#     collection = db["wishlist"]
+#
+#     try:
+#         collection.delete_one({"customer_id": customer_id})
+#         return json.dumps({"status": "success"}), 200
+#     except:
+#         return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
 
-    customer_id = request.args.get("customer_id")
 
-    collection = db["wishlist"]
-
-    try:
-        collection.delete_one({"customer_id": customer_id})
-        return json.dumps({"status": "success"}), 200
-    except:
-        return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
-
-
-# completed
-@app.route("/clear_cart", methods=["DELETE"])
-def empty_cart():
-    
-    customer_id = request.args.get("customer_id")
-
-    collection = db["cart"]
-
-    try:
-        collection.delete_one({"customer_id": customer_id})
-        return json.dumps({"status": "success"}), 200
-    except:
-        return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
+# # completed
+# @app.route("/clear_cart", methods=["DELETE"])
+# def empty_cart():
+#
+#     customer_id = request.args.get("customer_id")
+#
+#     collection = db["cart"]
+#
+#     try:
+#         collection.delete_one({"customer_id": customer_id})
+#         return json.dumps({"status": "success"}), 200
+#     except:
+#         return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
 
 
 # completed
 @app.route("/rem_from_products", methods=["DELETE"])
 def rem_from_products():
-    
     product_id = request.args.get("product_id")
     collection = db["product_details"]
 
@@ -741,21 +765,22 @@ def rem_from_products():
             for entry in db["cart"].find():
                 updated_product_ids, product_id_found = [], False
                 for product_data in entry["product_ids"]:
-                    if product_data["product_id"] == product_id:   
+                    if product_data["product_id"] == product_id:
                         product_id_found = True
-                        db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
-                                            {"$set": {"total_price": float(entry["total_price"]) - product_price * product_data["quantity"]}})
+                        db["cart"].update_one({"_id": ObjectId(entry["_id"])},
+                                              {"$set": {"total_price": float(entry["total_price"]) - product_price *
+                                                                       product_data["quantity"]}})
                     else:
                         updated_product_ids.append(product_data)
                 if product_id_found:
-                    db["cart"].update_one({"_id": ObjectId(entry["_id"])}, 
+                    db["cart"].update_one({"_id": ObjectId(entry["_id"])},
                                           {"$set": {"product_ids": updated_product_ids}})
 
             return json.dumps({"status": "success"}), 200
 
         else:
             return json.dumps({"status": "failed", "message": "product id not found"}), 406
-    
+
     except:
         return json.dumps({"status": "failed"}), 500
 
@@ -765,7 +790,6 @@ def rem_from_products():
 # completed (contains options to filter by category, min price, max price)
 @app.route("/get_products", methods=["GET"])
 def get_products():
-
     searchbox_text = request.args.get("text")
 
     category = request.args.get("category")
@@ -776,6 +800,8 @@ def get_products():
         searchbox_text = ""
     if not category:
         category = {"$exists": True}
+    else:
+        category = category.lower()
     if not price_min:
         price_min = 0
     if not price_max:
@@ -783,19 +809,23 @@ def get_products():
 
     products = db["product_details"]
 
-    #pagination
+    # pagination
     limit = int(request.args['limit'])
     page_number = int(request.args['page_number'])
 
-    skips = limit * (page_number-1)
+    skips = limit * (page_number - 1)
 
-    total_documents = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gt": price_min, "$lt": price_max}}).count()
-    total_pages = math.ceil(total_documents/limit)
     price_min = float(price_min)
     price_max = float(price_max)
 
-    cursor = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}, "category": category, "price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
- 
+    total_documents = products.find(
+        {'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+         "price": {"$gt": price_min, "$lt": price_max}}).count()
+    total_pages = math.ceil(total_documents / limit)
+
+    cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                            "price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
+
     output = []
 
     for i in cursor:
@@ -859,34 +889,37 @@ def product_detail(prod_id):
 
     return render_template('product-detail.html', product=product, is_logged_in=is_logged_in)
 
+
 # completed
 @app.route("/get_cart", methods=["GET"])
 def get_cart():
     user = session.get('user')
     if user:
-        customer_id = user['user_name']
+        customer_id = user['user_id']
         # customer_id = request.args.get("customer_id")
         customer_cart = db["cart"].find_one({"customer_id": customer_id})
         for index, product in enumerate(customer_cart["product_ids"]):
             product_id = product["product_id"]
-            customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one({"_id": ObjectId(product_id)})
+            customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                {"_id": ObjectId(product_id)})
         return dumps(customer_cart), 200
 
     return json.dumps({"status": "failed"}), 401
 
 
-# completed
-@app.route("/get_wishlist", methods=["GET"])
-def get_wishlist():
-    customer_id = request.args.get("customer_id")
-    wishlist = db["wishlist"]
-    return dumps(list(wishlist.find({"customer_id": customer_id}))), 200
+# # completed
+# @app.route("/get_wishlist", methods=["GET"])
+# def get_wishlist():
+#     customer_id = request.args.get("customer_id")
+#     wishlist = db["wishlist"]
+#     return dumps(list(wishlist.find({"customer_id": customer_id}))), 200
 
 
 # completed
 @app.route("/get_orders", methods=["GET"])
 def get_orders():
-    customer_id = request.args.get("customer_id")
+    # customer_id = request.args.get("customer_id")
+    customer_id = session.get('user')['user_id']
     if not customer_id:
         customer_id = {"$exists": True}
     orders = db["orders"]

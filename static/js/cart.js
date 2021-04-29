@@ -9,26 +9,6 @@ $( document ).ready(function() {
     applyTemplateAnimation();
 });
 
-function getCart(callback) {
-
-    showLoader();
-    $.ajax({
-        url: '/get_cart',
-        type: 'GET',
-        dataType: "json",
-        success: function (response) {
-            hideLoader();
-            cartData = response;
-            if (callback)
-                callback(response);
-        },
-        error: function (error) {
-            hideLoader();
-            console.log(error);
-        }
-    })
-}
-
 function createCart(cart) {
 
     let cartHtml = '';
@@ -102,4 +82,29 @@ function delFromCart (id) {
     cartData.product_ids.splice(prodIdx, 1);
     $("#cart-prod_" + prodId).remove();
     updateCartSummary();
+}
+
+function updateCart() {
+    cartData.product_ids.forEach(prod => {
+        delete prod.product_details;
+    });
+    
+    showLoader();
+    $.ajax({
+        type: "PUT",
+        url: "/update_cart",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({'cart' : cartData}),
+        success: function (response) {
+            hideLoader();
+            console.log('success \n', response);
+        },
+        error: function (error) {
+            hideLoader();
+            console.log('error', error);
+        }
+    })
+
+    return false;
 }
