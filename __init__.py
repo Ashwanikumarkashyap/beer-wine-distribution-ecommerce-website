@@ -518,6 +518,7 @@ def rem_from_cart():
 #     else:
 #         return json.dumps({"status": "failed"})
 
+
 # completed
 @app.route("/proceed_to_checkout", methods=["POST"])
 def proceed_to_checkout():
