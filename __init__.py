@@ -9,6 +9,7 @@ import bcrypt
 import datetime
 import re
 import phonenumbers
+import os
 from password_strength import PasswordPolicy
 from werkzeug.utils import secure_filename
 from flask import jsonify
@@ -568,10 +569,13 @@ def place_order():
 # completed
 @app.route("/update_product_details", methods=["PUT"])
 def update_product_details():
+
     user = session.get('user')
 
     if user and user['is_admin']:
 
+
+        product_id = request.form["product_id"]
         name = request.form["name"]
         brand = request.form["brand"]
         description = request.form["description"]
@@ -580,9 +584,12 @@ def update_product_details():
         price = request.form["price"]
 
         # to delete images from server and db
-        deleted_images = request.form["deleted_images"].split(',')
+        deleted_images = request.form["deleted_images"].split(",")
+        print(deleted_images)
         # to add images from server and db
         files = request.files.getlist('files[]')
+
+
 
         # request_json = request.json
         #
@@ -613,43 +620,57 @@ def update_product_details():
 
                 if name:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"name": name}})
+                                        {"$set": {"name": name}})
 
                 if brand:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"brand": brand}})
+                                        {"$set": {"brand": brand}})
                 if description:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"description": description}})
+                                        {"$set": {"description": description}})
                 if stock:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"stock": int(stock)}})
+                                        {"$set": {"stock": int(stock)}})
                 if category:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"category": category}})
-                if images:
-                    collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"images": images}})
+                                        {"$set": {"category": category}})
                 if price:
                     price_change = float(price) - float(db_check["price"])
                     collection.update_one({"_id": ObjectId(product_id)},
-                                          {"$set": {"price": float(price)}})
+                                        {"$set": {"price": float(price)}})
 
                     # put the change in everyones cart who has the updated product_id
                     for entry in db["cart"].find():
                         for product_data in entry["product_ids"]:
                             if product_data["product_id"] == product_id:
                                 db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-                                                      {"$set": {
-                                                          "total_price": float(entry["total_price"]) + price_change *
-                                                                         product_data["quantity"]}})
+                                                    {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
+                
+                #deleted images from mongodb
+                if deleted_images:
+                    for img in deleted_images:
+                        collection.update_one({"_id": ObjectId(product_id)}, {"$pull": {"images": img}})
+                        filepath_to_delete = img[3:]
+                        try:
+                            os.remove(filepath_to_delete)
+                            print(filepath_to_delete + " deleted successfull")
+                        except OSError as e:
+                            print("Error: %s - %s." % (e.filename, e.strerror))
 
+                if files:
+                    for file in files:
+                        if file and allowed_file(file.filename):
+                            filepath = UPLOAD_DEST + str(product_id) + '-' + secure_filename(file.filename)
+                            image_filepath = '../' + filepath
+                            collection.update_one({"_id": ObjectId(product_id)}, {"$addToSet": {"images": image_filepath}})
+                            file.save(filepath)
+                    
                 return json.dumps({"status": "success"}), 200
 
             else:
                 return json.dumps({"status": "failed", "message": "product id not found"}), 406
 
-        except:
+        except Exception as e:
             return json.dumps({"status": "failed"}), 500
     return json.dumps({"status": "failed"}), 401
 
@@ -832,49 +853,6 @@ def get_products():
         output.append(i)
 
     return dumps({'products': output, 'total_pages': total_pages}), 200
-
-    # starting_id = products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING)
-    # for i in starting_id:
-    #     print(i)
-
-    # last_id = starting_id[page_number]['_id']
-    # print(last_id)
-
-    # #return dumps(list(products.find({"category": category, "price": {"$gte": price_min, "$lte": price_max}})))
-    # all_products_with_page_limit = products.find({"_id": {"$gte" : last_id}, "category": category, "price": {"$gte": price_min, "$lte": price_max}}).sort('_id', pymongo.ASCENDING).limit(limit)
-    # output = []
-
-    # for i in all_products_with_page_limit:
-    #     output.append(i);
-
-    # next_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number+limit)
-    # prev_url = '/get_products?limit=' + str(limit) + '&page_number=' + str(page_number-limit)
-
-    # return dumps({'result': output, 'prev_url': prev_url, 'next_url': next_url})
-
-
-# search products through search bar
-# @app.route("/get_products_with_search", methods=["GET"])
-# def get_products_with_search():
-
-#     searchbox_text = request.args.get("text")
-
-#     products = db["product_details"]
-
-#     #pagination
-#     limit = int(request.args['limit'])
-#     page_number = int(request.args['page_number'])
-
-#     skips = limit * (page_number-1)
-
-#     #searched_products_with_page_limit = products.find({'name': { '$regex':  '\"'+searchbox_text+'\"', '$options': 'i'}}).skip(skips).limit(limit)
-#     searched_products_with_page_limit = products.find({'name': { '$regex':  '^'+searchbox_text+'', '$options': 'i'}}).skip(skips).limit(limit)
-#     output = []
-
-#     for i in searched_products_with_page_limit:
-#         output.append(i)
-
-#     return dumps(output)
 
 
 @app.route("/product_detail/<prod_id>", methods=["GET"])
