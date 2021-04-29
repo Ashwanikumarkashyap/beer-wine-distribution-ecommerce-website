@@ -99,6 +99,8 @@ function attachListeners() {
 
     $('.edit-btn').click(function () {
 
+        $("#product-images-field-wrapper").html('<input id="product-images-field" class="form-control-file inputfile" type="file"' +
+        'name="productImages" data-show-upload="false" data-show-caption="true" multiple>');
         prodIdx = parseInt($(this).attr('id').split("_")[1]);
 
         $('#product-name-field').val(adminProducts[prodIdx].name);
@@ -111,42 +113,44 @@ function attachListeners() {
         // $("admin-submit-btn").attr("onclick","editProduct()");
         // $("admin-submit-btn").text("Save Changes");
 
-        let imageViewerHtml = '<label id="photo-viewer-label" class="control-label">Current Photos</label><div id="admin-image-wrapper">';
-        adminProducts[prodIdx].images.forEach((imgSrc, idx) => {
-            imageViewerHtml+= 
-            '<div class="admin-img-div">' +
-                `<button id="admin-img-del_${idx}" class="btn admin-img-trash"><i class="fa fa-trash"></i></button>` +
-                `<button id="admin-img-restore_${idx}" class="btn admin-img-restore"><i class="fa fa-trash-restore"></i></button>` +
-                `<img id="admin-img_${idx}" class="admin-img" src="${imgSrc}">` +
-            '</div>';
-        });
-        imageViewerHtml+= '</div>';
-
-        $("#admin-image-cotainer").html(imageViewerHtml);
-
         deletedImages = new Set()
+        if (adminProducts[prodIdx].images.length >0) {
         
-        $( ".admin-img-restore" ).click(function( event ) {
-            let id = $(this).attr('id').split('_')[1];
-            $("#admin-img_" + id).css("filter", "none");
-            $("#admin-img-del_" + id).css("display", "block");
-            $(this).css("display", "none");
+            let imageViewerHtml = '<label id="photo-viewer-label" class="control-label">Current Photos</label><div id="admin-image-wrapper">';
+            adminProducts[prodIdx].images.forEach((imgSrc, idx) => {
+                imageViewerHtml+= 
+                '<div class="admin-img-div">' +
+                    `<button id="admin-img-del_${idx}" class="btn admin-img-trash"><i class="fa fa-trash"></i></button>` +
+                    `<button id="admin-img-restore_${idx}" class="btn admin-img-restore"><i class="fa fa-trash-restore"></i></button>` +
+                    `<img id="admin-img_${idx}" class="admin-img" src="${imgSrc}">` +
+                '</div>';
+            });
+            imageViewerHtml+= '</div>';
 
-            // remove image from deleted set
-            deletedImages.delete(id);
-        });
+            $("#admin-image-cotainer").html(imageViewerHtml);
 
-        $( ".admin-img-trash" ).click(function( event ) {
-            let id = $(this).attr('id').split('_')[1];
-            $("#admin-img_" + id).css("filter", "grayscale(1)");
-            $("#admin-img-restore_" + id).css("display", "block");
-            $(this).css("display", "none");
+            $( ".admin-img-restore" ).click(function( event ) {
+                let id = $(this).attr('id').split('_')[1];
+                $("#admin-img_" + id).css("filter", "none");
+                $("#admin-img-del_" + id).css("display", "block");
+                $(this).css("display", "none");
 
-            // add image to deleted set
-            deletedImages.add(id);
-        });
+                // remove image from deleted set
+                deletedImages.delete(id);
+            });
 
-        $(".admin-img-trash-restore").css("display", "none");
+            $( ".admin-img-trash" ).click(function( event ) {
+                let id = $(this).attr('id').split('_')[1];
+                $("#admin-img_" + id).css("filter", "grayscale(1)");
+                $("#admin-img-restore_" + id).css("display", "block");
+                $(this).css("display", "none");
+
+                // add image to deleted set
+                deletedImages.add(id);
+            });
+
+            $(".admin-img-trash-restore").css("display", "none");
+        }
 
         $("#admin-save-btn").show();
         $("#admin-add-btn").hide();
@@ -158,6 +162,9 @@ function attachListeners() {
 
 
     $('#add-product-btn').click(function () {
+
+        $("#product-images-field-wrapper").html('<input id="product-images-field" class="form-control-file inputfile" type="file"' +
+        'name="productImages" data-show-upload="false" data-show-caption="true" multiple>');
 
         // $("admin-submit-btn").attr("onclick","addProduct()");
         // $("admin-submit-btn").text("Add Product");
