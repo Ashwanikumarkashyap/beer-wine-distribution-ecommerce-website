@@ -328,6 +328,12 @@ function fetchAddress() {
         return false;
     }
 
+    if (firstName.trim() == "" || lastName.trim() == "" || email.trim() == "" || mobile.trim() == "" || 
+    country.trim() == "" || city.trim() == "" || state.trim() == "" || zip.trim() == "") {
+        showErrorPopup("Missing Required Input", "All the address fields should be filled");
+        return false;
+    }
+
     address.first_name = firstName;
     address.last_name = lastName;
     address.email = email;

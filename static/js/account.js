@@ -31,6 +31,8 @@ function createDashboard(orders) {
     });
 
     $("#orders-dashboard").html(ordersDashboardHtml);
+
+    getAddress(fillAddress);
 }
 
 function getOrders(callback) {
