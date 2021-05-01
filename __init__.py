@@ -249,6 +249,8 @@ def val_sign_in():
         #     secure=False
         # )
         return res, 200
+    else:
+    	return json.dumps({"status": "failed", "message": "Unauthorized access"}), 406
 
     return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
 
@@ -854,50 +856,57 @@ def rem_from_products():
 # completed (contains options to filter by category, min price, max price)
 @app.route("/get_products", methods=["GET"])
 def get_products():
-    searchbox_text = request.args.get("text")
 
-    category = request.args.get("category")
-    price_min = request.args.get("price_min")
-    price_max = request.args.get("price_max")
+	user = session.get('user')
+	searchbox_text = request.args.get("text")
+	category = request.args.get("category")
+	price_min = request.args.get("price_min")
+	price_max = request.args.get("price_max")
 
-    if not searchbox_text:
-        searchbox_text = ""
-    if not category:
-        category = {"$exists": True}
-    else:
-        category = category.lower()
-    if not price_min:
-        price_min = 0
-    if not price_max:
-        price_max = math.pow(10, 4)
+	if not searchbox_text:
+		searchbox_text = ""
+	if not category:
+		category = {"$exists": True}
+	else:
+		category = category.lower()
+	if not price_min:
+		price_min = 0
+	if not price_max:
+		price_max = math.pow(10, 4)
 
-    products = db["product_details"]
+	products = db["product_details"]
 
     # pagination
-    limit = int(request.args['limit'])
-    page_number = int(request.args['page_number'])
+	limit = int(request.args['limit'])
+	page_number = int(request.args['page_number'])
+	skips = limit * (page_number - 1)
+	price_min = float(price_min)
+	price_max = float(price_max)
 
-    skips = limit * (page_number - 1)
-
-    price_min = float(price_min)
-    price_max = float(price_max)
-
-    total_documents = products.find(
-        {'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+	if user and user['is_admin']:
+		total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
          "price": {"$gt": price_min, "$lt": price_max}}).count()
-    total_pages = math.ceil(total_documents / limit)
+		total_pages = math.ceil(total_documents / limit)
 
-    cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
-                            "price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
+		cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                            	"price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
+	else:
+		total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+         "price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).count()
+		total_pages = math.ceil(total_documents / limit)
 
-    output = []
+		cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                            	"price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).skip(skips).limit(limit)
 
-    for i in cursor:
-        output.append(i)
+	output = []
 
-    return dumps({'products': output, 'total_pages': total_pages}), 200
+	for i in cursor:
+		output.append(i)
 
+	return dumps({'products': output, 'total_pages': total_pages}), 200
 
+    
+ 
 @app.route("/product_detail/<prod_id>", methods=["GET"])
 def product_detail(prod_id):
     print('get_product_detail request made with id', prod_id)
