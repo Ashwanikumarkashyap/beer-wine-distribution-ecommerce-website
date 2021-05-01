@@ -193,7 +193,7 @@ def val_sign_up():
             "full_name": full_name,
             "email_id": email_id,
             "password": bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()),
-            # "address": address,
+            "shipping_address": {},
             "contact_no": contact_no,
             "govt_id": govt_id,
             "isAdmin": False
@@ -253,39 +253,44 @@ def val_sign_in():
     return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
 
 
-@app.route("/add_shipping_address", methods=["POST"])
+@app.route("/add_shipping_address", methods=["POST", "GET"])
 def add_shipping_address():
+	request_json = request.json
 
 	customer_id = session.get('user')['user_id']
-
+	
+	first_name = request_json["first_name"]
+	last_name = request_json["last_name"]
+	email = request_json["email"]
+	phone = request_json["phone"]
 	address = request_json["address"]
 	city = request_json["city"]
 	state = request_json["state"]
 	zip_code = request_json["zip_code"]
 	country = request_json["country"]
-
+    
+   
 	collection = db["customer_details"]
-	db_check_address = collection.find_one({"_id": ObjectId(customer_id)})["address"]
-
-	if db_check_address is None:
-		try:
-			collection.update_one({'_id': ObjectId(customer_id)}, {'$set': {'address':
-			{'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
-		except Exception as e:
-			return json.dumps({"status": "failed"}), 500
+    
+	try:
+		collection.update_one({'_id': ObjectId(customer_id)}, {'$set': {'shipping_address':
+		{'first_name': first_name, 'last_name': last_name, 'email': email, 'phone_number': phone,
+		'address': address, 'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
+	except Exception as e:
+		return json.dumps({"status": "failed"}), 500
 
 	return json.dumps({"status": "success"}), 200
 
 
-
 @app.route("/get_shipping_address", methods=["GET"])
 def get_shipping_address():
+
 	customer_id = session.get('user')['user_id']
 	collection = db["customer_details"]
 
 	shipping_address = collection.find_one({"_id": ObjectId(customer_id)})["address"]
 
-	return dumps(shipping_address)
+	return json.dumps({"status": "success", "result": shipping_address}), 200
 
 
 # completed
