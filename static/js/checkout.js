@@ -24,7 +24,7 @@ function createBillPanel(cart) {
 
     $("#cart-summary").html(cartSummaryHtml);
 
-    getAddress(fetchAddress);
+    getAddress(fillAddress);
 }
 
 function placeOrder() {

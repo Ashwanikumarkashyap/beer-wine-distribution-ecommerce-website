@@ -336,7 +336,7 @@ function fetchAddress() {
     address.country = country;
     address.city = city;
     address.state = state;
-    address.zip = zip;
+    address.zip_code = zip;
     return address;
 }
 
@@ -372,7 +372,7 @@ function getAddress(callback) {
             hideLoader();
             cartData = response;
             if (callback)
-                callback(response);
+                callback(response.result);
         },
         error: function (error) {
             hideLoader();
@@ -392,6 +392,6 @@ function fillAddress(address) {
         $("#address-country").val(address.country);
         $("#address-city").val(address.city);
         $("#address-state").val(address.state);
-        $("#address-zip").val(address.zip);
+        $("#address-zip").val(address.zip_code);
     }
 }
