@@ -154,8 +154,8 @@ def val_sign_up():
         return json.dumps({"status": "failed", "message": "username already exists"})
     if collection.find_one({"email_id": email_id}):
         return json.dumps({"status": "failed", "message": "email address already exists"})
-    if collection.find_one({"contact_no": contact_no}):
-        return json.dumps({"status": "failed", "message": "contact no already exists"})
+    # if collection.find_one({"contact_no": contact_no}):
+    #     return json.dumps({"status": "failed", "message": "contact no already exists"})
     if collection.find_one({"govt_id": govt_id}):
         return json.dumps({"status": "failed", "message": "govt_id already exists"})
 
@@ -193,7 +193,7 @@ def val_sign_up():
             "full_name": full_name,
             "email_id": email_id,
             "password": bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()),
-            # "address": address,
+            "address": {},
             "contact_no": contact_no,
             "govt_id": govt_id,
             "isAdmin": False

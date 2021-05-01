@@ -23,19 +23,24 @@ function createBillPanel(cart) {
         `<h2>Grand Total<span>${grandTotal}</span></h2>`;
 
     $("#cart-summary").html(cartSummaryHtml);
+
+    getAddress(fetchAddress);
 }
 
 function placeOrder() {
+
+    let address = fetchAddress();
+    if (!address) {
+        return;
+    }
+
     showLoader();
-
-    let shippingAddress = {'shipping_address': ""}
-
     $.ajax({
         type: "POST",
         url: "/place_order",
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
-        data: JSON.stringify(shippingAddress),
+        data: JSON.stringify({'address': address}),
         success: function (response) {
             hideLoader();
             console.log('success \n', response);

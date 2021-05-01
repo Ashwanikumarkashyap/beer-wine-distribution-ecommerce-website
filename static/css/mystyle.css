@@ -121,3 +121,17 @@
     align-items: center;
     justify-content: center;
 }
+
+#set-address {
+    margin-top: 30px;
+}
+
+#reg-contactno-input::-webkit-outer-spin-button,
+#reg-contactno-input::-webkit-inner-spin-button,
+#address-mobile::-webkit-outer-spin-button,
+#address-mobile::-webkit-inner-spin-button,
+#address-zip::-webkit-inner-spin-button,
+#address-zip::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

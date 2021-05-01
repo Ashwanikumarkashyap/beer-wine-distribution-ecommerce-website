@@ -306,3 +306,92 @@ function showErrorPopup(title, message) {
 
     $('#error-modal').modal('show');
 }
+
+function fetchAddress() {
+    let address = {};
+
+    let firstName = $("#address-fname").val();
+    let lastName = $("#address-lname").val();
+    let email = $("#address-email").val();
+    let mobile = $("#address-mobile").val();
+    let addressText = $("#address-text").val();
+    let country = $("#address-country").val();
+    let city = $("#address-city").val();
+    let state = $("#address-state").val();
+    let zip = $("#address-zip").val();
+
+    let emailValRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    var emailCheck = new RegExp(emailValRegex);
+
+    if (!emailCheck.test(email)) { 
+        showErrorPopup("Invalid Email Address", "Please Enter a valid Email Adresss");
+        return false;
+    }
+
+    address.first_name = firstName;
+    address.last_name = lastName;
+    address.email = email;
+    address.phone = mobile;
+    address.address = addressText;
+    address.country = country;
+    address.city = city;
+    address.state = state;
+    address.zip = zip;
+    return address;
+}
+
+function updateAddress() {
+    let addressReq = fetchAddress();
+
+    showLoader();
+    $.ajax({
+        type: "POST",
+        url: "/add_shipping_address",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify(addressReq),
+        success: function (response) {
+            hideLoader();
+            console.log('success, \n', response);
+        },
+        error: function (error) {
+            hideLoader();
+            console.log('error', error);
+            showErrorPopup();
+        }
+    })
+}
+
+function getAddress(callback) {
+    showLoader();
+    $.ajax({
+        url: '/get_shipping_address',
+        type: 'GET',
+        dataType: "json",
+        success: function (response) {
+            hideLoader();
+            cartData = response;
+            if (callback)
+                callback(response);
+        },
+        error: function (error) {
+            hideLoader();
+            console.log(error);
+            showErrorPopup();
+        }
+    })
+}
+
+function fillAddress(address) {
+    if ($("#address-details")) {
+        $("#address-fname").val(address.first_name);
+        $("#address-lname").val(address.last_name);
+        $("#address-email").val(address.email);
+        $("#address-mobile").val(address.phone);
+        $("#address-text").val(address.address);
+        $("#address-country").val(address.country);
+        $("#address-city").val(address.city);
+        $("#address-state").val(address.state);
+        $("#address-zip").val(address.zip);
+    }
+}
