@@ -159,6 +159,7 @@ function getProducts(pg, limit, category, minPrice, maxPrice, callback) {
         error: function (error) {
             hideLoader();
             console.log(error);
+            showErrorPopup();
         }
     })
 }
@@ -199,6 +200,7 @@ function getProductsWithSearch(searchQuery, pg, limit, category, minPrice, maxPr
         error: function (error) {
             hideLoader();
             console.log(error);
+            showErrorPopup();
         }
     })
 }
@@ -223,13 +225,21 @@ function addToCart(productId, qty, isProdId, callback) {
         success: function (response) {
             hideLoader();
             console.log('success\n', response);
+            if (callback)
+                callback();
         },
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 
+    return false;
+}
+
+function goToCartPage() {
+    window.location.href = "/cart";
     return false;
 }
 
@@ -276,6 +286,23 @@ function getCart(callback) {
         error: function (error) {
             hideLoader();
             console.log(error);
+            showErrorPopup();
         }
     })
+}
+
+function showErrorPopup(title, message) {
+    if (title) {
+        $("#error-heading").text(title);
+    } else {
+        $("#error-heading").text("Error Occured");
+    }
+
+    if (message) {
+        $("#error-message").text(message);
+    } else {
+        $("#error-message").text("Something went wrong.");
+    }
+
+    $('#error-modal').modal('show');
 }

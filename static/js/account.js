@@ -49,6 +49,7 @@ function getOrders(callback) {
         error: function (error) {
             hideLoader();
             console.log(error);
+            showErrorPopup();
         }
     })
 }

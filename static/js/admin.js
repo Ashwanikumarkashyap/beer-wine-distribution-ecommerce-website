@@ -86,12 +86,14 @@ function attachListeners() {
             dataType: "json",
             success: function (response) {
                 console.log("success\n", response);
+                $("#my-pages").html("");
                 getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
                 
             },
             error: function (error) {
                 hideLoader();
                 console.log('error', error);
+                showErrorPopup();
             }
         })
 
@@ -207,6 +209,7 @@ function addProduct() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 }
@@ -291,12 +294,14 @@ function editProduct() {
             hideLoader();
             console.log("success\n", response);
             $('#edit-modal').modal('hide');
+            $("#my-pages").html("");
             getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
             
         },
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 

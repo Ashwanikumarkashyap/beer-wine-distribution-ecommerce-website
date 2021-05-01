@@ -54,6 +54,7 @@ function register() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 }
@@ -97,6 +98,7 @@ function login() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 

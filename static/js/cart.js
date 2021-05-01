@@ -13,6 +13,13 @@ function createCart(cart) {
 
     let cartHtml = '';
 
+    if (cart == null || cart == undefined || cart.product_ids.length ==0) {
+        $("#cart-div").hide();
+        $("#cart-empty-div").show();
+    } else {
+        $("#cart-div").show();
+        $("#cart-empty-div").hide();
+    }
 
     cart.product_ids.forEach((prod, idx) => {
         cartHtml += 
@@ -103,6 +110,7 @@ function updateCart() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
+            showErrorPopup();
         }
     })
 

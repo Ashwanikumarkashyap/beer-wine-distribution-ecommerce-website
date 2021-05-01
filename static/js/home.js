@@ -3,18 +3,16 @@ $( document ).ready(function() {
     // creatLoginNav();
 
     creatHomeSlider(sliderData);
-    createFeaturedPanel(products);
+    getProductsWithSearch(null, 1, pageLimit, null, null, null, createFeaturedPanel);
 
-    // should be called after creating every UI elements
-    applyTemplateAnimation();
 });
 
 function createFeaturedPanel(featueredData) {
     let featueredHtml = '';
     
     let featueredPanel = $('#featured-panel')
-   
-    
+
+
     featueredData.forEach((data, idx)=> {
         if (idx > 4) {
             return;
@@ -22,27 +20,32 @@ function createFeaturedPanel(featueredData) {
         featueredHtml+= '<div class="col-lg-3">' + 
             '<div class="product-item">' +
                 '<div class="product-title">' + 
-                    `<a id="name-${data.id}" href="#">${data.productName}</a>` + 
+                    `<a id="name-${data._id.$oid}" href="#">${data.name}</a>` + 
                 '</div>' +
                 '<div class="product-image">' +
                     '<a href="product-detail.html">' +
-                        `<img src="${data.productImage}" alt="Product Image">` +
+                        `<img src="${data.images[0]}" alt="Product Image">` +
                     '</a>' +
                     '<div class="product-action">' +
-                        `<a id="cart-${data.id}" onclick="return addtoCart(this.id, 1, false)" href="#"><i class="fa fa-cart-plus"></i></a>` +
+                        `<a id="cart-${data._id.$oid}" onclick="return addToCart(this.id, 1, false)" href="#"><i class="fa fa-cart-plus"></i></a>` +
                         // `<a id="favourite-${data.id}" onclick="return addToFav(this.id)" href="#"><i class="fa fa-heart"></i></a>` +
-                        `<a id="detail-${data.id}" href="product-detail.html"><i class="fa fa-search"></i></a>` +
+                        `<a id="detail-${data._id.$oid}" onclick="return getProdDetail(this.id)"><i class="fa fa-search"></i></a>` +
                     '</div>' +
                 '</div>' +
                 '<div class="product-price">' +
-                    `<h3><span>$</span>${data.productPrice}</h3>` +
-                    `<a id="cart-${data.id}" class="btn" href=""><i class="fa fa-shopping-cart"></i>Buy Now</a>` +
+                    `<h3><span>$</span>${data.price}</h3>` +
+                    `<a id="cart-${data._id.$oid}" class="btn" onclick="return addToCart(this.id, 1, false, goToCartPage)" href=""><i class="fa fa-shopping-cart"></i>Buy Now</a>` +
                 '</div>' +
             '</div>' +
         '</div>'
     })
     featueredPanel.append(featueredHtml)
+
+    // should be called after creating every UI elements
+    applyTemplateAnimation();
 }
+
+
 
 function creatHomeSlider(sliderData) {
     let sliderHtml = '';

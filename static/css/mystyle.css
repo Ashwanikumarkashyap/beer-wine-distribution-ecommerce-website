@@ -8,6 +8,7 @@
 
 .myadmin-page-wrapper {
     margin-top: 20px;
+    display: none;
 }
 
 #loader-wrapper {
@@ -75,4 +76,48 @@
     right: 0px;
     z-index: 1;
     display: none;
+}
+
+#cart-empty-div {
+    background: white;
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    color: grey;
+    display: none;
+}
+
+/* #cart-div {
+    display: none;
+} */
+
+.product-image {
+    display: flex;
+    height: 13em;
+    justify-content: center;
+    align-items: center;
+}
+
+#product-list-wrapper {
+    width: 100%;
+}
+
+.product-stock {
+    color: gray;
+}
+.mySlides {display:none}
+
+.product-detail-slider-btn {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    justify-content: space-evenly;
+}
+
+.product-detail-slider-imgs {
+    width: 100%;
+    height: 25em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

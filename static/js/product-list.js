@@ -42,7 +42,7 @@ function createProductList(products) {
                 '</div>' +
                 '<div class="product-price">' +
                     `<h3><span>$</span>${data.price}</h3>` +
-                    `<a id="cart-${data._id.$oid}" class="btn" href=""><i class="fa fa-shopping-cart"></i>Buy Now</a>` +
+                    `<a id="cart-${data._id.$oid}" class="btn" href="" onclick="return addToCart(this.id, 1, false, goToCartPage)"><i class="fa fa-shopping-cart"></i>Buy Now</a>` +
                 '</div>' +
             '</div>' +
         '</div>'

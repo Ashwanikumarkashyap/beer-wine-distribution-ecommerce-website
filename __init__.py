@@ -397,7 +397,7 @@ def add_to_cart():
                                       {"product_id": product_id, "quantity": int(quantity)}]),
                                             "total_price": total_price}})
             return json.dumps({"status": "success", "message": "new product added to cart"}), 200
-
+    return json.dumps({"status": "failed"}), 403
 
 # completed
 # old code
