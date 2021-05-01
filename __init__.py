@@ -18,6 +18,8 @@ app = Flask(__name__)
 
 username = urllib.parse.quote("admin")
 password = urllib.parse.quote("admin")
+
+# url = mongodb+srv://<username>:<password>
 url = "mongodb+srv://" + username + ":" + password + "@cluster0.riul3.mongodb.net/beer_wine_website?retryWrites=true&w=majority"
 cluster = pymongo.MongoClient(url)
 db = cluster["beer_wine_website"]
@@ -134,7 +136,7 @@ def val_sign_up():
     full_name = request_json["full_name"]
     email_id = request_json["email_id"]
     password = request_json["password"]
-    address = request_json["address"]
+    # address = request_json["address"]
     contact_no = request_json["contact_no"]
     govt_id = request_json["govt_id"]
 
@@ -191,12 +193,11 @@ def val_sign_up():
             "full_name": full_name,
             "email_id": email_id,
             "password": bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()),
-            "address": address,
+            # "address": address,
             "contact_no": contact_no,
             "govt_id": govt_id,
             "isAdmin": False
         }).inserted_id
-        res = make_response(json.dumps({"status": "success"}))
         # res.set_cookie(
         #     "data",
         #     max_age=3600,
@@ -205,10 +206,11 @@ def val_sign_up():
         #     domain=None,
         #     secure=False
         # )
-        session['user'] = {'user_name': user_name, 'user_id': user_id, 'is_admin': False}
-        return res, 200
-    except:
-    	return json.dumps({"status": "failed"}), 500
+        session['user'] = {'user_name': user_name, 'user_id': str(user_id), 'is_admin': False}
+        return json.dumps({"status": "success"}), 200
+    except Exception as e:
+        print("error in signup: ", e)
+        return json.dumps({"status": "failed"}), 500
         
 
 
