@@ -208,7 +208,8 @@ def val_sign_up():
         session['user'] = {'user_name': user_name, 'user_id': user_id, 'is_admin': False}
         return res, 200
     except:
-        return json.dumps({"status": "failed"}), 500
+    	return json.dumps({"status": "failed"}), 500
+        
 
 
 # completed
@@ -248,6 +249,41 @@ def val_sign_in():
         return res, 200
 
     return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
+
+
+@app.route("/add_shipping_address", methods=["POST"])
+def add_shipping_address():
+
+	customer_id = session.get('user')['user_id']
+
+	address = request_json["address"]
+	city = request_json["city"]
+	state = request_json["state"]
+	zip_code = request_json["zip_code"]
+	country = request_json["country"]
+
+	collection = db["customer_details"]
+	db_check_address = collection.find_one({"_id": ObjectId(customer_id)})["address"]
+
+	if db_check_address is None:
+		try:
+			collection.update_one({'_id': ObjectId(customer_id)}, {'$set': {'address':
+			{'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
+		except Exception as e:
+			return json.dumps({"status": "failed"}), 500
+
+	return json.dumps({"status": "success"}), 200
+
+
+
+@app.route("/get_shipping_address", methods=["GET"])
+def get_shipping_address():
+	customer_id = session.get('user')['user_id']
+	collection = db["customer_details"]
+
+	shipping_address = collection.find_one({"_id": ObjectId(customer_id)})["address"]
+
+	return dumps(shipping_address)
 
 
 # completed
