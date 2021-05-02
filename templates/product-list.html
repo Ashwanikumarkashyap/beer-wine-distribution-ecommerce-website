@@ -173,7 +173,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="row">
-                            <div class="col-md-12">
+                            <!-- <div class="col-md-12">
                                 <div class="product-view-top">
                                     <div class="row">
                                         <div class="col-md-4">
@@ -182,7 +182,7 @@
                                                 <button onclick="filterSearch()"><i class="fa fa-search"></i></button>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4"> -->
                                             <!-- <div class="product-short">
                                                 <div class="dropdown"> -->
                                                     <!-- <div class="dropdown-toggle" data-toggle="dropdown">Product short by</div>
@@ -198,7 +198,7 @@
                                                         <a href="#" class="dropdown-item">Beer</a>
                                                         <a href="#" class="dropdown-item">Wine</a>
                                                     </div> -->
-                                            <select id="category-input" name="category" class="form-control">
+                                            <!-- <select id="category-input" name="category" class="form-control">
                                                 <option selected="selected">Select Category</option>
                                                 <option>Beer</option>
                                                 <option>Wine</option>
@@ -210,7 +210,7 @@
                                                     placeholder="Min Price" min="0" />
                                                 <input id="max-price-input" class="form-control col-md-5" type="number" name="maxPrice"
                                                 placeholder="Max Price" min="0" />
-                                            </div>
+                                            </div> -->
                                             <!-- <div class="product-price-range">
                                                 <div class="dropdown">
                                                     <div class="dropdown-toggle" data-toggle="dropdown">Product price range</div>
@@ -228,6 +228,34 @@
                                                     </div>
                                                 </div>
                                             </div> -->
+                                        <!-- </div>
+                                    </div>
+                                </div>
+                            </div> -->
+
+                            <div class="col-md-12">
+                                <div class="product-view-top">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <input class="form-control" id="filter-search" type="email" placeholder="Search">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="category-input" name="category" class="form-control">
+                                                <option selected="selected">Select Category</option>
+                                                <option>Beer</option>
+                                                <option>Wine</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="row justify-content-around">
+                                                <input id="min-price-input" class="form-control col-md-5" type="number" name="minPrice"
+                                                    placeholder="Min Price" min="0" />
+                                                <input id="max-price-input" class="form-control col-md-5" type="number" name="maxPrice"
+                                                placeholder="Max Price" min="0" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button onclick="setFilter()" class="btn btn-primary" type="button"><i class="fa fa-search"></i></button>
                                         </div>
                                     </div>
                                 </div>

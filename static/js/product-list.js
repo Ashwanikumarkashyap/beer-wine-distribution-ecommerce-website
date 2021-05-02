@@ -1,3 +1,11 @@
+
+let filter = {
+    "searchQuery" : "",
+    "category" : "",
+    "minPrice" : "",
+    "maxPrice" : ""
+}
+
 $( document ).ready(function() {
 
     // creatLoginNav();
@@ -144,7 +152,10 @@ function prevPage() {
 }
 
 function searchProducts(searchQuery) {
+
+    searchQuery = searchQuery.trim();
     $("#filter-search").val(searchQuery);
+    filter.searchQuery = searchQuery;
     $("#my-pages").html("");
     if (searchQuery) {
         getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createProductList);
@@ -154,15 +165,39 @@ function searchProducts(searchQuery) {
     }
 }
 
-function filterSearch(page) {
-    let pageReq = 1;
+// function filterSearch(page) {
+//     let pageReq = 1;
 
-    if (page) {
-        pageReq = page;
-    } else {
-        $("#my-pages").html("");
-    }
+//     if (page) {
+//         pageReq = page;
+//     } else {
+//         $("#my-pages").html("");
+//     }
 
+//     let searchQuery = $("#filter-search").val();
+//     if (searchQuery.trim() == "") {
+//         searchQuery == null;
+//     }
+
+//     let cat = $("#category-input").val();
+//     if (cat == "Select Category") {
+//         cat = null;
+//     }
+
+//     let minPrice = $("#min-price-input").val();
+//     if (minPrice == "") {
+//         minPrice = null;
+//     }
+
+//     let maxPrice = $("#max-price-input").val();
+//     if (maxPrice == "") {
+//         maxPrice = null;
+//     }
+
+//     getProductsWithSearch(searchQuery, pageReq, pageLimit, cat, parseInt(minPrice), parseInt(maxPrice), createProductList);
+// }
+
+function setFilter() {
     let searchQuery = $("#filter-search").val();
     if (searchQuery.trim() == "") {
         searchQuery == null;
@@ -183,5 +218,42 @@ function filterSearch(page) {
         maxPrice = null;
     }
 
-    getProductsWithSearch(searchQuery, pageReq, pageLimit, cat, parseInt(minPrice), parseInt(maxPrice), createProductList);
+    filter.searchQuery = searchQuery;
+    filter.category = cat;
+    filter.minPrice = minPrice;
+    filter.maxPrice = maxPrice;
+    $("#my-pages").html("");
+    filterSearch(1);
+}
+
+function filterSearch(page) {
+    let pageReq = 1;
+
+    if (page) {
+        pageReq = page;
+    } else {
+        $("#my-pages").html("");
+    }
+
+    // let searchQuery = $("#filter-search").val();
+    // if (searchQuery.trim() == "") {
+    //     searchQuery == null;
+    // }
+
+    // let cat = $("#category-input").val();
+    // if (cat == "Select Category") {
+    //     cat = null;
+    // }
+
+    // let minPrice = $("#min-price-input").val();
+    // if (minPrice == "") {
+    //     minPrice = null;
+    // }
+
+    // let maxPrice = $("#max-price-input").val();
+    // if (maxPrice == "") {
+    //     maxPrice = null;
+    // }
+
+    getProductsWithSearch(filter.searchQuery, pageReq, pageLimit, filter.category, parseInt(filter.minPrice), parseInt(filter.maxPrice), createProductList);
 }

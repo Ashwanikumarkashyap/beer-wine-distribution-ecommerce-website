@@ -35,6 +35,15 @@ function createDashboard(orders) {
     $("#orders-dashboard").html(ordersDashboardHtml);
 
     getAddress(fillAddress);
+
+    if (orders.length > 0) {
+        $("#order-list").show();
+        $("#cart-empty-div").hide();
+    } else {
+        $("#order-list").hide();
+        $("#cart-empty-div").show();
+    }
+    
 }
 
 function getOrders(callback) {
