@@ -135,3 +135,21 @@
   -webkit-appearance: none;
   margin: 0;
 }
+
+.admin-img-thumb {
+    max-width: 8em !important;
+    max-height: 8em !important;
+}
+
+#error-modal {
+    z-index: 1051;
+}
+
+#error-popup-header-admin {
+    background: #b2b2b2;
+}
+
+#admin-table-wrapper {
+    display: none;
+}
+

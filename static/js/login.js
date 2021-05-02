@@ -6,18 +6,18 @@ $( document ).ready(function() {
 });
 
 function register() {
-    let uname = $("#reg-uname-input").val();
-    let fname = $("#reg-fname-input").val();
-    let email = $("#reg-email-input").val();
-    let mobile = $("#reg-contactno-input").val();
-    let pw = $("#reg-pw-input").val();
-    let pwconf = $("#reg-pwconf-input").val();
-    let govtId = $("#reg-govtid-input").val();
+    let uname = $("#reg-uname-input").val().trim() ;
+    let fname = $("#reg-fname-input").val().trim();
+    let email = $("#reg-email-input").val().trim();
+    let mobile = $("#reg-contactno-input").val().trim();
+    let pw = $("#reg-pw-input").val().trim();
+    let pwconf = $("#reg-pwconf-input").val().trim();
+    let govtId = $("#reg-govtid-input").val().trim();
 
     let emailValRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     var emailCheck = new RegExp(emailValRegex);
 
-    if (fname.trim() == "" || mobile.trim() == "" || email.trim() == "" || govtId.trim() == "" || pw.trim() == "" || pwconf.trim() == "") {
+    if (uname=="" || fname== "" || mobile == "" || email == "" || govtId == "" || pw == "" || pwconf == "") {
         showErrorPopup("Missing Required Fields", "All the required fields should be filled for signup.");
         return false;
     }

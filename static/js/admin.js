@@ -1,5 +1,13 @@
 let adminProducts = []
 let deletedImages;
+let prodIdx;
+
+let filter = {
+    "searchQuery" : "",
+    "category" : "",
+    "minPrice" : "",
+    "maxPrice" : ""
+}
 
 $( document ).ready(function() {
 
@@ -25,6 +33,7 @@ function createAdminList(products) {
         '<tr>' +
             '<td>' +
                 '<div class="img">' +
+                    `<a href="#"><img class="admin-img-thumb" src="${prod.images[0]}" alt="Image"></a>` +
                     `<p>${prod.name}</p>` +
                 '</div>' +
             '</td>' +
@@ -48,6 +57,14 @@ function createAdminList(products) {
     });
 
     $("#admin-table").html(listHtml);
+
+    if (products.length ==0) {
+        $("#admin-table-wrapper").hide();
+        $("#cart-empty-div").show();
+    } else {
+        $("#admin-table-wrapper").show();
+        $("#cart-empty-div").hide();
+    }
     
    
     if ($('#my-pages').children().length == 0) {
@@ -194,6 +211,9 @@ function attachListeners() {
 function addProduct() {
 
     var fd = fetchFormDetails();
+    if (!fd) {
+        return;
+    }
 
     showLoader();
 
@@ -208,6 +228,7 @@ function addProduct() {
             console.log("success\n", response);
             hideLoader();
             $('#edit-modal').modal('hide');
+            $("#my-pages").html("");
             getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
         },
         error: function (error) {
@@ -222,27 +243,39 @@ function fetchFormDetails() {
 
     var fd = new FormData();
     
-    let brand = $('#product-brand-field').val();
-    let name = $('#product-name-field').val();
-    let price = $('#product-price-field').val();
-    let qty = $('#product-qty-field').val();
-    let desc = $('#product-desc-field').val();
-    let category = $('#product-category-field').val();
-    
-    fd.append('name', name);
-    fd.append('price', price);
-    fd.append('brand', brand);
-    fd.append('stock', qty);
-    fd.append('description', desc);
-    fd.append('category', category);
+    let brand = $('#product-brand-field').val().trim();
+    let name = $('#product-name-field').val().trim();
+    let price = $('#product-price-field').val().trim();
+    let qty = $('#product-qty-field').val().trim();
+    let desc = $('#product-desc-field').val().trim();
+    let category = $('#product-category-field').val().trim();
 
+    if (brand == "" || name == "" || price == "" || qty == "" || desc == "") {
+        alert("All the required fields should be filled for signup.");
+        // showErrorPopup("Missing Required Fields", "All the required fields should be filled for signup.");
+        return false;
+    }
+   
     // get uploaded files
     var files = $('#product-images-field')[0].files;
     if(files.length > 0 ){
         for (let idx = 0; idx < files.length; idx++) {
             fd.append("files[]", files[idx]);
         }
+    } else {
+        if ($('#admin-image-cotainer').children().length == 0 || ($('#admin-image-cotainer').children().length !=0 && deletedImages.size == adminProducts[prodIdx].images.length)) {
+            // showErrorPopup("Missing Product Image", "You must upload atleast one product image.");
+            alert("You must upload atleast one product image.");
+            return false;
+        }   
     }
+
+    fd.append('name', name);
+    fd.append('price', price);
+    fd.append('brand', brand);
+    fd.append('stock', qty);
+    fd.append('description', desc);
+    fd.append('category', category);
 
     return fd;
 }
@@ -277,6 +310,10 @@ function fetchFormDetails() {
 function editProduct() {
 
     fd = fetchFormDetails();
+    if (!fd) {
+        return;
+    }
+
     fd.append('product_id', adminProducts[prodIdx]._id.$oid);
     
     // add images to be deleted from the server
@@ -316,12 +353,14 @@ function getPage(pageDiv) {
     $('.active').removeClass("active");
     $(pageDiv).addClass("active");
 
-    let searchQuery = $("#admin-search-input").val();
-    if (searchQuery.trim()== "") {
-        searchQuery = null;
-    }
+    // let searchQuery = $("#admin-search-input").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
 
-    getProductsWithSearch(searchQuery, page, pageLimit, null, null, null, createAdminList);
+    // getProductsWithSearch(searchQuery, page, pageLimit, null, null, null, createAdminList);
+
+    filterSearch(page);
 }
 
 function nextPage() {
@@ -336,12 +375,14 @@ function nextPage() {
         $("next-page").removeClass("disabled");
     }
 
-    let searchQuery = $("#admin-search-input").val();
-    if (searchQuery.trim()== "") {
-        searchQuery = null;
-    }
+    // let searchQuery = $("#admin-search-input").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
 
-    getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createAdminList);
+    // getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createAdminList);
+
+    filterSearch(pageNo+1);
 
     $(".page-text").each(function(){
         let page = parseInt($(this).text());
@@ -361,12 +402,12 @@ function prevPage() {
         $("prev-page").removeClass("disabled");
     }
 
-    let searchQuery = $("#admin-search-input").val();
-    if (searchQuery.trim()== "") {
-        searchQuery = null;
-    }
-
-    getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createAdminList);
+    // let searchQuery = $("#admin-search-input").val();
+    // if (searchQuery.trim()== "") {
+    //     searchQuery = null;
+    // }
+    filterSearch(pageNo-1);
+    // getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){ 
         let page = parseInt($(this).text());
@@ -375,12 +416,76 @@ function prevPage() {
 }
 
 function getAdminProducts() {
-    let searchQuery = $("#admin-search-input").val();
-    if (searchQuery.trim()!="") {
-        $("#my-pages").html("");
-        getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createAdminList);
+    let searchQuery = $("#admin-search-input").val().trim();
+    $("#filter-search").val(searchQuery);
+
+    if (searchQuery == "") {
+        searchQuery = null;
+    }
+
+    filter.searchQuery = searchQuery;
+    $("#my-pages").html("");
+    getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createAdminList);
+    
+}
+
+function setFilter() {
+    let searchQuery = $("#filter-search").val();
+    if (searchQuery.trim() == "") {
+        searchQuery == null;
+    }
+
+    let cat = $("#category-input").val();
+    if (cat == "Select Category") {
+        cat = null;
+    }
+
+    let minPrice = $("#min-price-input").val();
+    if (minPrice == "") {
+        minPrice = null;
+    }
+
+    let maxPrice = $("#max-price-input").val();
+    if (maxPrice == "") {
+        maxPrice = null;
+    }
+
+    filter.searchQuery = searchQuery;
+    filter.category = cat;
+    filter.minPrice = minPrice;
+    filter.maxPrice = maxPrice;
+    $("#my-pages").html("");
+    filterSearch(1);
+}
+
+function filterSearch(page) {
+    let pageReq = 1;
+
+    if (page) {
+        pageReq = page;
     } else {
         $("#my-pages").html("");
-        getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
     }
+
+    // let searchQuery = $("#filter-search").val();
+    // if (searchQuery.trim() == "") {
+    //     searchQuery == null;
+    // }
+
+    // let cat = $("#category-input").val();
+    // if (cat == "Select Category") {
+    //     cat = null;
+    // }
+
+    // let minPrice = $("#min-price-input").val();
+    // if (minPrice == "") {
+    //     minPrice = null;
+    // }
+
+    // let maxPrice = $("#max-price-input").val();
+    // if (maxPrice == "") {
+    //     maxPrice = null;
+    // }
+
+    getProductsWithSearch(filter.searchQuery, pageReq, pageLimit, filter.category, parseInt(filter.minPrice), parseInt(filter.maxPrice), createAdminList);
 }

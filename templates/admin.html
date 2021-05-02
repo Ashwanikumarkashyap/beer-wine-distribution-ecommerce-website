@@ -35,7 +35,7 @@
     <div class="modal" id="error-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header">
+                <div id="error-popup-header-admin" class="modal-header">
                     <h5 id="error-heading" class="modal-title">Error Occured</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -170,8 +170,38 @@
         <div class="container-fluid">
             <div class="wishlist-page-inner">
                 <div class="row">
+
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="product-view-top">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input class="form-control" id="filter-search" type="email" placeholder="Search">
+                                </div>
+                                <div class="col-md-4">
+                                    <select id="category-input" name="category" class="form-control">
+                                        <option selected="selected">Select Category</option>
+                                        <option>Beer</option>
+                                        <option>Wine</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="row justify-content-around">
+                                        <input id="min-price-input" class="form-control col-md-5" type="number" name="minPrice"
+                                            placeholder="Min Price" min="0" />
+                                        <input id="max-price-input" class="form-control col-md-5" type="number" name="maxPrice"
+                                        placeholder="Max Price" min="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <button onclick="setFilter()" class="btn btn-primary" type="button"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div id="cart-empty-div"><h3>No Product Found</h3></div>
+                        <div id="admin-table-wrapper" class="table-responsive">
                             <table class="table table-bordered">
                                 <thead class="thead-dark">
                                     <tr>
@@ -420,7 +450,7 @@
                     <div class="row">
 
                         <div class="col-md-6 form-group">
-                            <label class="control-label" for="name">Product Name</label>
+                            <label class="control-label" for="name">Product Name *</label>
                             <div>
                                 <input id="product-name-field" class="form-control" type="text" name="name"
                                     placeholder="Enter title" />
@@ -428,7 +458,7 @@
                         </div>
 
                         <div class="col-md-6 form-group">
-                            <label class="control-label" for="price">Price</label>
+                            <label class="control-label" for="price">Price *</label>
                             <div>
                                 <input id="product-price-field" class="form-control" type="number" name="price"
                                     placeholder="Price" min="0" />
@@ -436,7 +466,7 @@
                         </div>
 
                         <div class="col-md-6 form-group">
-                            <label class="control-label" for="quantity">Stock</label>
+                            <label class="control-label" for="quantity">Stock *</label>
                             <div>
                                 <input id="product-qty-field" class="form-control" type="number" name="quantity"
                                     placeholder="Quantity" min="1" />
@@ -444,7 +474,7 @@
                         </div>
 
                         <div class="col-md-6 form-group">
-                            <label class="control-label" for="brand">Brand</label>
+                            <label class="control-label" for="brand">Brand *</label>
                             <div>
                                 <input id="product-brand-field" class="form-control" type="text" name="brand"
                                     placeholder="Enter brand" />
@@ -453,7 +483,7 @@
 
                          <!--Textarea-->
                         <div class="col-md-12 form-group">
-                            <label class="control-label" for="description">Description</label>
+                            <label class="control-label" for="description">Description *</label>
                             <div>
                                 <textarea id="product-desc-field" class="form-control product-desc-field" name="description"
                                     placeholder="Description" rows="4"></textarea>
@@ -469,7 +499,7 @@
                         </div>
 
                         <div class="col-md-6 form-group">
-                            <label id="product-category-field" class="control-label" for="category">Category</label>
+                            <label id="product-category-field" class="control-label" for="category">Category *</label>
                             <div>
                                 <select name="category" class="form-control">
                                     <option>Beer</option>
