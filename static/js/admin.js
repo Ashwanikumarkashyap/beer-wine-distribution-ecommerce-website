@@ -33,12 +33,16 @@ function createAdminList(products) {
                 `${prod.stock}` +
             '</td>';
 
+            listHtml+= `<td><button id="admin-edit-btn_${idx}" class="edit-btn"><i class="fa fa-edit"></i></button></td>`;
             if (prod.deleted) {
-                listHtml += `<td><button id="admin-edit-btn_${idx}" class="edit-btn my-disabled-btn" disabled><i class="fa fa-edit"></i></button></td>` +
-                `<td><button id="admin-del-btn_${idx}" class="my-disabled-btn" disabled><i class="fa fa-trash"></i></button></td>`;
+                // listHtml += `<td><button id="admin-edit-btn_${idx}" class="edit-btn my-disabled-btn" disabled><i class="fa fa-edit"></i></button></td>` +
+                // `<td><button id="admin-del-btn_${idx}" class="my-disabled-btn" disabled><i class="fa fa-trash"></i></button></td>`;
+                listHtml += `<td><button id="admin-del-btn_${idx}" class="my-disabled-btn" disabled><i class="fa fa-trash"></i></button></td>`;
             } else {
-                listHtml += `<td><button id="admin-edit-btn_${idx}" class="edit-btn"><i class="fa fa-edit"></i></button></td>` +
-                `<td><button id="admin-del-btn_${idx}" class="del-btn"><i class="fa fa-trash"></i></button></td>`;
+                // listHtml += `<td><button id="admin-edit-btn_${idx}" class="edit-btn"><i class="fa fa-edit"></i></button></td>` +
+                // `<td><button id="admin-del-btn_${idx}" class="del-btn"><i class="fa fa-trash"></i></button></td>`;
+
+                listHtml += `<td><button id="admin-del-btn_${idx}" class="del-btn"><i class="fa fa-trash"></i></button></td>`;
             }
         listHtml+= '</tr>';
     });
@@ -375,5 +379,8 @@ function getAdminProducts() {
     if (searchQuery.trim()!="") {
         $("#my-pages").html("");
         getProductsWithSearch(searchQuery, 1, pageLimit, null, null, null, createAdminList);
+    } else {
+        $("#my-pages").html("");
+        getProductsWithSearch(null, 1, pageLimit, null, null, null, createAdminList);
     }
 }

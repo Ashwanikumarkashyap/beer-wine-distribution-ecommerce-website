@@ -231,7 +231,7 @@ function addToCart(productId, qty, isProdId, callback) {
         error: function (error) {
             hideLoader();
             console.log('error', error);
-            showErrorPopup();
+            showErrorPopup(null, error.responseJSON.message);
         }
     })
 
@@ -343,7 +343,7 @@ function fetchAddress() {
     }
 
     if (firstName.trim() == "" || lastName.trim() == "" || email.trim() == "" || mobile.trim() == "" || 
-    country.trim() == "" || city.trim() == "" || state.trim() == "" || zip.trim() == "") {
+    country.trim() == "" || city.trim() == "" || state.trim() == "" || zip.trim() == "" || addressText.trim() == "") {
         showErrorPopup("Missing Required Fields", "All the required input address fields should be filled to place the order.");
         return false;
     }

@@ -8,7 +8,7 @@ import json
 import bcrypt
 import datetime
 import re
-import phonenumbers
+# import phonenumbers
 import os
 from password_strength import PasswordPolicy
 from werkzeug.utils import secure_filename
@@ -132,7 +132,7 @@ def get_search_page(search_query):
 def val_sign_up():
     request_json = request.json
 
-    user_name = request_json["user_name"]
+    user_name = request_json["user_name"].lower()
     full_name = request_json["full_name"]
     email_id = request_json["email_id"]
     password = request_json["password"]
@@ -142,13 +142,13 @@ def val_sign_up():
     collection = db["customer_details"]
 
     if collection.find_one({"user_name": user_name}):
-        return json.dumps({"status": "failed", "message": "username already exists"})
+        return json.dumps({"status": "failed", "message": "Username already exists."}), 409
     if collection.find_one({"email_id": email_id}):
-        return json.dumps({"status": "failed", "message": "email address already exists"})
+        return json.dumps({"status": "failed", "message": "Email address already exists."}), 409
     # if collection.find_one({"contact_no": contact_no}):
     #     return json.dumps({"status": "failed", "message": "contact no already exists"})
-    if collection.find_one({"govt_id": govt_id}):
-        return json.dumps({"status": "failed", "message": "govt_id already exists"})
+    # if collection.find_one({"govt_id": govt_id}):
+    #     return json.dumps({"status": "failed", "message": "govt_id already exists"})
 
     # email address validation
     email_regex = r"^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
@@ -173,10 +173,10 @@ def val_sign_up():
     if len(policy.test(password)) > 0:
         return jsonify({"status": "failed", "message": "password not strong enough"}), 406
 
-    # phone number validation
-    ph_number = phonenumbers.parse(str(contact_no), "US")
-    if not phonenumbers.is_valid_number(ph_number):
-        return jsonify({"status": "failed", "message": "invalid phone number"}), 406
+    # # phone number validation
+    # ph_number = phonenumbers.parse(str(contact_no), "US")
+    # if not phonenumbers.is_valid_number(ph_number):
+    #     return jsonify({"status": "failed", "message": "invalid phone number"}), 406
 
     try:
         user_id = collection.insert_one({
@@ -202,7 +202,7 @@ def val_sign_up():
     except Exception as e:
         print("error in signup: ", e)
         return json.dumps({"status": "failed"}), 500
-        
+
 
 
 # completed
@@ -210,7 +210,7 @@ def val_sign_up():
 def val_sign_in():
     request_json = request.json
 
-    user_name = request_json["user_name"]
+    user_name = request_json["user_name"].lower()
     password = request_json["password"]
 
     is_admin = request_json["is_admin"]
@@ -220,10 +220,16 @@ def val_sign_in():
 
     collection = db["customer_details"]
 
+    if collection.find_one({"user_name": user_name}) is None :
+        return json.dumps({"status": "failed", "message": "Username does not exists"}), 406
+
     if is_admin:
         db_check = collection.find_one({"user_name": user_name, "isAdmin": is_admin})
     else:
         db_check = collection.find_one({"user_name": user_name})
+
+    if db_check is None:
+        return json.dumps({"status": "failed", "message": "Unauthorized access"}), 406
 
     if db_check and bcrypt.checkpw(password.encode("utf-8"), db_check["password"]):
         res = make_response(json.dumps({
@@ -231,59 +237,49 @@ def val_sign_in():
         }))
 
         session['user'] = {'user_name': user_name, 'user_id': str(db_check['_id']), 'is_admin': is_admin}
-        # res.set_cookie(
-        #     "data",
-        #     max_age=3600,
-        #     expires=None,
-        #     path=request.path,
-        #     domain=None,
-        #     secure=False
-        # )
         return res, 200
     else:
-    	return json.dumps({"status": "failed", "message": "Unauthorized access"}), 406
-
-    return json.dumps({"status": "failed", "message": "invalid login credentials"}), 406
+        return json.dumps({"status": "failed", "message": "Invalid login credentials"}), 406
 
 
 @app.route("/add_shipping_address", methods=["POST", "GET"])
 def add_shipping_address():
-	request_json = request.json
+    request_json = request.json
 
-	customer_id = session.get('user')['user_id']
-	
-	first_name = request_json["first_name"]
-	last_name = request_json["last_name"]
-	email = request_json["email"]
-	phone = request_json["phone"]
-	address = request_json["address"]
-	city = request_json["city"]
-	state = request_json["state"]
-	zip_code = request_json["zip_code"]
-	country = request_json["country"]
-    
-   
-	collection = db["customer_details"]
-    
-	try:
-		collection.update_one({'_id': ObjectId(customer_id)}, {'$set': {'shipping_address':
-		{'first_name': first_name, 'last_name': last_name, 'email': email, 'phone': phone,
-		'address': address, 'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
-	except Exception as e:
-		return json.dumps({"status": "failed"}), 500
+    customer_id = session.get('user')['user_id']
 
-	return json.dumps({"status": "success"}), 200
+    first_name = request_json["first_name"]
+    last_name = request_json["last_name"]
+    email = request_json["email"]
+    phone = request_json["phone"]
+    address = request_json["address"]
+    city = request_json["city"]
+    state = request_json["state"]
+    zip_code = request_json["zip_code"]
+    country = request_json["country"]
+
+
+    collection = db["customer_details"]
+
+    try:
+        collection.update_one({'_id': ObjectId(customer_id)}, {'$set': {'shipping_address':
+                                                                            {'first_name': first_name, 'last_name': last_name, 'email': email, 'phone': phone,
+                                                                             'address': address, 'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
+    except Exception as e:
+        return json.dumps({"status": "failed"}), 500
+
+    return json.dumps({"status": "success"}), 200
 
 
 @app.route("/get_shipping_address", methods=["GET"])
 def get_shipping_address():
 
-	customer_id = session.get('user')['user_id']
-	collection = db["customer_details"]
+    customer_id = session.get('user')['user_id']
+    collection = db["customer_details"]
 
-	shipping_address = collection.find_one({"_id": ObjectId(customer_id)})["shipping_address"]
+    shipping_address = collection.find_one({"_id": ObjectId(customer_id)})["shipping_address"]
 
-	return json.dumps({"status": "success", "result": shipping_address}), 200
+    return json.dumps({"status": "success", "result": shipping_address}), 200
 
 
 # completed
@@ -307,7 +303,7 @@ def add_to_products():
         brand = request.form["brand"]
         description = request.form["description"]
         stock = request.form["stock"]
-        category = request.form["category"]
+        category = request.form["category"].lower()
         price = request.form["price"]
 
         # name = request.args.get("name")
@@ -433,7 +429,8 @@ def add_to_cart():
                                       {"product_id": product_id, "quantity": int(quantity)}]),
                                             "total_price": total_price}})
             return json.dumps({"status": "success", "message": "new product added to cart"}), 200
-    return json.dumps({"status": "failed"}), 403
+
+    return json.dumps({"status": "failed", "message": "User must be logged in."}), 403
 
 # completed
 # old code
@@ -571,12 +568,12 @@ def place_order():
 
         if products_present_in_inventory:
             for queries in store_queries_to_run:
-            	if queries["stock"] == 0:
-            		db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
-                                                 {"$set": {"stock": queries["stock"], "deleted": True}})
-            	else:
-            		db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
-                                                 {"$set": {"stock": queries["stock"]}})
+                if queries["stock"] == 0:
+                    db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+                                                     {"$set": {"stock": queries["stock"], "deleted": True}})
+                else:
+                    db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+                                                     {"$set": {"stock": queries["stock"]}})
 
 
             # add the current cart to order to fetch the order details in user dashboard
@@ -586,7 +583,7 @@ def place_order():
                 customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
                     {"_id": ObjectId(product_id)})
 
-            shipping = round(max(12, 0.15 * float(db_check["total_price"])), 2)
+            shipping = round(min(12, 0.15 * float(db_check["total_price"])), 2)
             db["orders"].insert_one({
                 "customer_id": customer_id,
                 "shipping_address": shipping_address,
@@ -661,32 +658,37 @@ def update_product_details():
 
                 if name:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"name": name}})
+                                          {"$set": {"name": name}})
 
                 if brand:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"brand": brand}})
+                                          {"$set": {"brand": brand}})
                 if description:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"description": description}})
+                                          {"$set": {"description": description}})
                 if stock:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"stock": int(stock)}})
+                                          {"$set": {"stock": int(stock)}})
+
+                if int(stock) > 0:
+                    collection.update_one({"_id": ObjectId(product_id)},
+                                          {"$set": {"deleted": False}})
+
                 if category:
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"category": category}})
+                                          {"$set": {"category": category}})
                 if price:
                     price_change = float(price) - float(db_check["price"])
                     collection.update_one({"_id": ObjectId(product_id)},
-                                        {"$set": {"price": float(price)}})
+                                          {"$set": {"price": float(price)}})
 
                     # put the change in everyones cart who has the updated product_id
                     for entry in db["cart"].find():
                         for product_data in entry["product_ids"]:
                             if product_data["product_id"] == product_id:
                                 db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-                                                    {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
-                
+                                                      {"$set": {"total_price": float(entry["total_price"]) + price_change * product_data["quantity"]}})
+
                 #deleted images from mongodb
                 if deleted_images:
                     for img in deleted_images:
@@ -705,7 +707,7 @@ def update_product_details():
                             image_filepath = '../' + filepath
                             collection.update_one({"_id": ObjectId(product_id)}, {"$addToSet": {"images": image_filepath}})
                             file.save(filepath)
-                    
+
                 return json.dumps({"status": "success"}), 200
 
             else:
@@ -821,22 +823,22 @@ def rem_from_products():
         if db_check:
 
             product_price = db_check["price"]
-            collection.update_one({"_id": ObjectId(product_id)}, {"$set": {"deleted": True}})
+            collection.update_one({"_id": ObjectId(product_id)}, {"$set": {"deleted": True, "stock": 0}})
 
             # put the change in everyones cart who has the updated product_id 
-            for entry in db["cart"].find():
-                updated_product_ids, product_id_found = [], False
-                for product_data in entry["product_ids"]:
-                    if product_data["product_id"] == product_id:
-                        product_id_found = True
-                        db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-                                              {"$set": {"total_price": float(entry["total_price"]) - product_price *
-                                                                       product_data["quantity"]}})
-                    else:
-                        updated_product_ids.append(product_data)
-                if product_id_found:
-                    db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-                                          {"$set": {"product_ids": updated_product_ids}})
+            # for entry in db["cart"].find():
+            #     updated_product_ids, product_id_found = [], False
+            #     for product_data in entry["product_ids"]:
+            #         if product_data["product_id"] == product_id:
+            #             product_id_found = True
+            #             db["cart"].update_one({"_id": ObjectId(entry["_id"])},
+            #                                   {"$set": {"total_price": float(entry["total_price"]) - product_price *
+            #                                                            product_data["quantity"]}})
+            #         else:
+            #             updated_product_ids.append(product_data)
+            #     if product_id_found:
+            #         db["cart"].update_one({"_id": ObjectId(entry["_id"])},
+            #                               {"$set": {"product_ids": updated_product_ids}})
 
             return json.dumps({"status": "success"}), 200
 
@@ -853,56 +855,57 @@ def rem_from_products():
 @app.route("/get_products", methods=["GET"])
 def get_products():
 
-	user = session.get('user')
-	searchbox_text = request.args.get("text")
-	category = request.args.get("category")
-	price_min = request.args.get("price_min")
-	price_max = request.args.get("price_max")
+    user = session.get('user')
+    searchbox_text = request.args.get("text")
+    category = request.args.get("category")
+    price_min = request.args.get("price_min")
+    price_max = request.args.get("price_max")
 
-	if not searchbox_text:
-		searchbox_text = ""
-	if not category:
-		category = {"$exists": True}
-	else:
-		category = category.lower()
-	if not price_min:
-		price_min = 0
-	if not price_max:
-		price_max = math.pow(10, 4)
+    if not searchbox_text:
+        searchbox_text = ""
 
-	products = db["product_details"]
+    if not category:
+        category = {"$exists": True}
+    else:
+        category = category.lower()
+    if not price_min:
+        price_min = 0
+    if not price_max:
+        price_max = math.pow(10, 4)
+
+    products = db["product_details"]
 
     # pagination
-	limit = int(request.args['limit'])
-	page_number = int(request.args['page_number'])
-	skips = limit * (page_number - 1)
-	price_min = float(price_min)
-	price_max = float(price_max)
+    limit = int(request.args['limit'])
+    page_number = int(request.args['page_number'])
+    skips = limit * (page_number - 1)
+    price_min = float(price_min)
+    price_max = float(price_max)
 
-	if user and user['is_admin']:
-		total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
-         "price": {"$gt": price_min, "$lt": price_max}}).count()
-		total_pages = math.ceil(total_documents / limit)
+    if user and user['is_admin']:
+        total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                                         "price": {"$gt": price_min, "$lt": price_max}}).count()
+        total_pages = math.ceil(total_documents / limit)
 
-		cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
-                            	"price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
-	else:
-		total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
-         "price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).count()
-		total_pages = math.ceil(total_documents / limit)
+        cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                                "price": {"$gt": price_min, "$lt": price_max}}).skip(skips).limit(limit)
+    else:
+        total_documents = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                                         "price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).count()
+        total_pages = math.ceil(total_documents / limit)
 
-		cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
-                            	"price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).skip(skips).limit(limit)
+        cursor = products.find({'name': {'$regex': '^' + searchbox_text + '', '$options': 'i'}, "category": category,
+                                "price": {"$gt": price_min, "$lt": price_max}, "deleted": False}).skip(skips).limit(limit)
 
-	output = []
+    output = []
 
-	for i in cursor:
-		output.append(i)
+    for i in cursor:
+        output.append(i)
 
-	return dumps({'products': output, 'total_pages': total_pages}), 200
+    return dumps({'products': output, 'total_pages': total_pages}), 200
 
-    
- 
+
+
 @app.route("/product_detail/<prod_id>", methods=["GET"])
 def product_detail(prod_id):
     print('get_product_detail request made with id', prod_id)
@@ -925,22 +928,22 @@ def get_cart():
     if user:
         customer_id = user['user_id']
         customer_cart = db["cart"].find_one({"customer_id": customer_id})
-        cart_id = customer_cart['_id']
         if customer_cart:
+            cart_id = customer_cart['_id']
             for index, product in enumerate(customer_cart["product_ids"]):
                 product_id = product["product_id"]
                 # getting product details for each product
                 product_details = products_collection.find_one({"_id": ObjectId(product_id)})
                 stock = product_details['stock']
                 if product_details['stock'] != 0:
-                	customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
-                    {"_id": ObjectId(product_id)})
+                    customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                        {"_id": ObjectId(product_id)})
                 else:
-                	# remove these product IDs from cart collection
+                    # remove these product IDs from cart collection
                     p_idx = next((index for (index, d) in enumerate(customer_cart['product_ids']) if d["product_id"] == product_id), None)
                     customer_cart['product_ids'].pop(p_idx)
-                    cart_collection.update_one({"_id": cart_id}, {"$pull": {"product_ids": product_id}})
-                
+                    cart_collection.update_one({"_id": cart_id}, {"$pull": {"product_ids": {"product_id": product_id}}})
+
             return dumps(customer_cart), 200
         return json.dumps([]), 200
 

@@ -49,7 +49,7 @@ function placeOrder() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
-            showErrorPopup();
+            showErrorPopup(null, error.responseJSON.message);
         }
     })
 }

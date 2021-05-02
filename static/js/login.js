@@ -18,12 +18,17 @@ function register() {
     var emailCheck = new RegExp(emailValRegex);
 
     if (fname.trim() == "" || mobile.trim() == "" || email.trim() == "" || govtId.trim() == "" || pw.trim() == "" || pwconf.trim() == "") {
-        showErrorPopup("Missing Required Fields", "All the required fields should be filled to signup.");
+        showErrorPopup("Missing Required Fields", "All the required fields should be filled for signup.");
         return false;
     }
 
     if (!emailCheck.test(email)) { 
         showErrorPopup("Invalid Email Address", "Please Enter a valid Email Adresss.");
+        return false;
+    }
+
+    if (mobile.trim().length!=10) { 
+        showErrorPopup("Invalid Phone Number", "Please Enter a valid phone number.");
         return false;
     }
 
@@ -68,8 +73,8 @@ function register() {
         },
         error: function (error) {
             hideLoader();
-            console.log('error', error);
-            showErrorPopup();
+            console.log('error\n', error);
+            showErrorPopup(null, error.responseJSON.message);
         }
     })
 }
@@ -90,7 +95,7 @@ function login() {
     let isAdmin = document.getElementById("login-isadmin-input").checked;
 
     if (uname.trim() == "" || pw.trim() == "") {
-        showErrorPopup("Missing Required Fields", "All the required fields should be filled to login.")
+        showErrorPopup("Missing Required Fields", "All the required fields should be filled for login.")
         return;
     }
 
@@ -117,8 +122,8 @@ function login() {
         },
         error: function (error) {
             hideLoader();
-            console.log('error', error);
-            showErrorPopup();
+            console.log('error\n', error);
+            showErrorPopup(null, error.responseJSON.message);
         }
     })
 
