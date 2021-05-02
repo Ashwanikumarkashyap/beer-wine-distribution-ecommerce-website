@@ -920,6 +920,8 @@ def product_detail(prod_id):
 @app.route("/get_cart", methods=["GET"])
 def get_cart():
     user = session.get('user')
+    products_collection = db["product_details"]
+    cart_collection = db["cart"]
     if user:
         customer_id = user['user_id']
         # customer_id = request.args.get("customer_id")
@@ -927,8 +929,18 @@ def get_cart():
         if customer_cart:
             for index, product in enumerate(customer_cart["product_ids"]):
                 product_id = product["product_id"]
-                customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                # getting product details for each product
+                product_details = products_collection.find_one({"_id": ObjectId(product_id)})
+                print("I am here")
+                print(product_details)
+                stock = product_details['stock']
+                if product_details['stock'] != 0:
+                	customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
                     {"_id": ObjectId(product_id)})
+                else:
+                	# remove these product IDs from cart collection
+                	cart_collection.update_one({"customer_id": customer_id}, {"$pull": {"product_ids": product_id}})
+                
             return dumps(customer_cart), 200
         return json.dumps([]), 200
 
