@@ -296,7 +296,7 @@ function showErrorPopup(title, message, redirect) {
     if (redirect) {
         $("#error-redirect").css("display", "block");
         $("#error-okay").css("display", "none");
-        $("#error-redirect").attr("onclick","redirect(" + redirect +")");
+        $("#error-redirect").attr("onclick",'redirect("' + redirect + '")');
     } else {
         $("#error-redirect").css("display", "none");
         $("#error-okay").css("display", "block");

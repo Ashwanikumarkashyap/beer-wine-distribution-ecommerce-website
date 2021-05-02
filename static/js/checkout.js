@@ -43,7 +43,7 @@ function placeOrder() {
         data: JSON.stringify({'shipping_address': address}),
         success: function (response) {
             hideLoader();
-            showErrorPopup("Order Placed", "You can view the order details in the account section.");
+            showErrorPopup("Order Placed", "Order placed successfully. You can view the order details in the account section.", "account");
             console.log('success \n', response);
         },
         error: function (error) {

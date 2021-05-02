@@ -16,11 +16,13 @@ function createDashboard(orders) {
         '<tr>' +
             `<td>${(idx+1)}</td>`;
 
-        if (order.customer_cart.product_ids.length == 1 ) {
-            ordersDashboardHtml+= `<td>${order.customer_cart.product_ids[0].product_details.name}</td>`;
-        } else {
-            ordersDashboardHtml+= `<td>Multiple Products</td>`;
-        }
+        // if (order.customer_cart.product_ids.length == 1 ) {
+        //     ordersDashboardHtml+= `<td>${order.customer_cart.product_ids[0].product_details.name}</td>`;
+        // } else {
+        //     ordersDashboardHtml+= `<td>Multiple Products</td>`;
+        // }
+
+        ordersDashboardHtml += `<td>${order.shipping_address.address} <br>  ${order.shipping_address.city}, ${order.shipping_address.country}</td>`;
 
         let orderDate = new Date(order.order_date.$date);
         ordersDashboardHtml+= `<td>${orderDate.toDateString()}</td>` +
