@@ -136,17 +136,8 @@ def val_sign_up():
     full_name = request_json["full_name"]
     email_id = request_json["email_id"]
     password = request_json["password"]
-    # address = request_json["address"]
     contact_no = request_json["contact_no"]
     govt_id = request_json["govt_id"]
-
-    # user_name = request.args.get("user_name")
-    # full_name = request.args.get("full_name")
-    # email_id = request.args.get("email_id")
-    # password = request.args.get("password")
-    # address = request.args.get("address")
-    # contact_no = request.args.get("contact_no")
-    # govt_id = request.args.get("govt_id")
 
     collection = db["customer_details"]
 
@@ -556,7 +547,7 @@ def place_order():
     # shipping_address = request.args.get("shipping_address")
 
     if not shipping_address:
-        shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["address"]
+        shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["shipping_address"]
 
     collection = db["cart"]
 

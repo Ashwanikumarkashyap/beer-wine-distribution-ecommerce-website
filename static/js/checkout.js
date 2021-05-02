@@ -40,9 +40,10 @@ function placeOrder() {
         url: "/place_order",
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
-        data: JSON.stringify({'address': address}),
+        data: JSON.stringify({'shipping_address': address}),
         success: function (response) {
             hideLoader();
+            showErrorPopup("Order Placed", "You can view the order details in the account section.");
             console.log('success \n', response);
         },
         error: function (error) {

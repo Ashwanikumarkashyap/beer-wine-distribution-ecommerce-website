@@ -291,7 +291,17 @@ function getCart(callback) {
     })
 }
 
-function showErrorPopup(title, message) {
+function showErrorPopup(title, message, redirect) {
+
+    if (redirect) {
+        $("#error-redirect").css("display", "block");
+        $("#error-okay").css("display", "none");
+        $("#error-redirect").attr("onclick","redirect(" + redirect +")");
+    } else {
+        $("#error-redirect").css("display", "block");
+        $("#error-okay").css("display", "none");
+    }
+
     if (title) {
         $("#error-heading").text(title);
     } else {
@@ -305,6 +315,10 @@ function showErrorPopup(title, message) {
     }
 
     $('#error-modal').modal('show');
+}
+
+function redirect(address) {
+    window.location.href = "/" + address;
 }
 
 function fetchAddress() {
