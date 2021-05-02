@@ -298,8 +298,8 @@ function showErrorPopup(title, message, redirect) {
         $("#error-okay").css("display", "none");
         $("#error-redirect").attr("onclick","redirect(" + redirect +")");
     } else {
-        $("#error-redirect").css("display", "block");
-        $("#error-okay").css("display", "none");
+        $("#error-redirect").css("display", "none");
+        $("#error-okay").css("display", "block");
     }
 
     if (title) {

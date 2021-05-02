@@ -919,11 +919,13 @@ def get_cart():
         customer_id = user['user_id']
         # customer_id = request.args.get("customer_id")
         customer_cart = db["cart"].find_one({"customer_id": customer_id})
-        for index, product in enumerate(customer_cart["product_ids"]):
-            product_id = product["product_id"]
-            customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
-                {"_id": ObjectId(product_id)})
-        return dumps(customer_cart), 200
+        if customer_cart:
+            for index, product in enumerate(customer_cart["product_ids"]):
+                product_id = product["product_id"]
+                customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                    {"_id": ObjectId(product_id)})
+            return dumps(customer_cart), 200
+        return json.dumps([]), 200
 
     return json.dumps({"status": "failed"}), 401
 
@@ -948,4 +950,4 @@ def get_orders():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

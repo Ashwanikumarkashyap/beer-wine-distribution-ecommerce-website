@@ -13,7 +13,7 @@ function createCart(cart) {
 
     let cartHtml = '';
 
-    if (cart == null || cart == undefined || cart.product_ids.length ==0) {
+    if (cart == null || cart == undefined || cart.length == 0 || cart.product_ids.length ==0) {
         $("#cart-div").hide();
         $("#cart-empty-div").show();
     } else {
