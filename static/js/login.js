@@ -14,18 +14,33 @@ function register() {
     let pwconf = $("#reg-pwconf-input").val();
     let govtId = $("#reg-govtid-input").val();
 
+    let emailValRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    var emailCheck = new RegExp(emailValRegex);
+
+    if (fname.trim() == "" || mobile.trim() == "" || email.trim() == "" || govtId.trim() == "" || pw.trim() == "" || pwconf.trim() == "") {
+        showErrorPopup("Missing Required Fields", "All the required fields should be filled to signup.");
+        return false;
+    }
+
+    if (!emailCheck.test(email)) { 
+        showErrorPopup("Invalid Email Address", "Please Enter a valid Email Adresss.");
+        return false;
+    }
+
+
     if (pw != pwconf) {
-        alert("Both the passwords should match.");
+        showErrorPopup("Passwords Mismatch", "Both the password values should match.");
         return;
     }
 
     if (!isStrongPwd(pw)) {
-        alert('Password is not strong enough. Password should contain the following:\n' +
-        'i) Password should have at least 8 characters.' +
+        showErrorPopup("Passwords is not strong enough", 'Password is not strong enough. Password should contain the following:\n' +
+        'i) Password should have at least 8 characters.\n' +
         'ii) At least one upper case letter (A – Z).\n' +
         'iii) At least one lower case letter(a-z).\n' +
         'iv) At least one digit (0 – 9).\n' +
-        'v) At least one special Characters of !@#$%&*()')
+        'v) At least one special Characters of !@#$%&*()');
+        return;
     }
 
     var request = { 
@@ -73,6 +88,11 @@ function login() {
     let uname = $("#login-uname-input").val();
     let pw = $("#login-pw-input").val();
     let isAdmin = document.getElementById("login-isadmin-input").checked;
+
+    if (uname.trim() == "" || pw.trim() == "") {
+        showErrorPopup("Missing Required Fields", "All the required fields should be filled to login.")
+        return;
+    }
 
     var request = { 
         "user_name": uname, 

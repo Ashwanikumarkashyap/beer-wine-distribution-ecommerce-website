@@ -344,7 +344,7 @@ function fetchAddress() {
 
     if (firstName.trim() == "" || lastName.trim() == "" || email.trim() == "" || mobile.trim() == "" || 
     country.trim() == "" || city.trim() == "" || state.trim() == "" || zip.trim() == "") {
-        showErrorPopup("Missing Required Input", "All the address fields should be filled");
+        showErrorPopup("Missing Required Fields", "All the required input address fields should be filled to place the order.");
         return false;
     }
 
