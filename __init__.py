@@ -571,8 +571,13 @@ def place_order():
 
         if products_present_in_inventory:
             for queries in store_queries_to_run:
-                db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+            	if queries["stock"] == 0:
+            		db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+                                                 {"$set": {"stock": queries["stock"], "deleted": True}})
+            	else:
+            		db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
                                                  {"$set": {"stock": queries["stock"]}})
+
 
             # add the current cart to order to fetch the order details in user dashboard
             customer_cart = db_check
