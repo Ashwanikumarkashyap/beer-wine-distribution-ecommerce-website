@@ -317,7 +317,7 @@ function showErrorPopup(title, message, redirect) {
     }
 
     if (message) {
-        $("#error-message").text(message);
+        $("#error-message").html(message);
     } else {
         $("#error-message").text("Something went wrong.");
     }

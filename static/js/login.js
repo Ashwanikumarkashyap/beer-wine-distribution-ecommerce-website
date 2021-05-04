@@ -39,11 +39,11 @@ function register() {
     }
 
     if (!isStrongPwd(pw)) {
-        showErrorPopup("Passwords is not strong enough", 'Password is not strong enough. Password should contain the following:\n' +
-        'i) Password should have at least 8 characters.\n' +
-        'ii) At least one upper case letter (A – Z).\n' +
-        'iii) At least one lower case letter(a-z).\n' +
-        'iv) At least one digit (0 – 9).\n' +
+        showErrorPopup("Passwords is not strong enough", 'Password is not strong enough. Password should contain the following:<br>' +
+        'i) Password should have at least 8 characters.<br>' +
+        'ii) At least one upper case letter (A – Z).<br>' +
+        'iii) At least one lower case letter(a-z).<br>' +
+        'iv) At least one digit (0 – 9).<br>' +
         'v) At least one special Characters of !@#$%&*()');
         return;
     }
