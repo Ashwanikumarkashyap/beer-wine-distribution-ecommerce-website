@@ -57,7 +57,7 @@ function decProdQty () {
 function createProductDetailSliders(myProduct) {
     let sliderHtml = "";
     myProduct.images.forEach(imgSrc => {
-        sliderHtml+= ` <div class="mySlides"><img src="${imgSrc}" style="width:100%"></div>`;
+        sliderHtml+= ` <div class="mySlides"><img class="image-detail-slide-img" src="${imgSrc}"></div>`;
     });
 
     $("#product-detail-slider-imgs").html(sliderHtml);

@@ -3,7 +3,7 @@ let cartData = []
 $( document ).ready(function() {
     // creatLoginNav();
 
-    getCart(createCart);
+    getCart(createCart, false);
 
     // should be called after creating every UI elements
     applyTemplateAnimation();

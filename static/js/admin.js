@@ -262,6 +262,12 @@ function fetchFormDetails() {
         // showErrorPopup("Missing Required Fields", "All the required fields should be filled for signup.");
         return false;
     }
+
+    if (parseInt(qty) <= 0) {
+        alert("Stock should be atleast greater than 1.");
+        // showErrorPopup("Missing Required Fields", "All the required fields should be filled for signup.");
+        return false;
+    }
    
     // get uploaded files
     var files = $('#product-images-field')[0].files;

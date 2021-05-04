@@ -74,7 +74,11 @@ function register() {
         error: function (error) {
             hideLoader();
             console.log('error\n', error);
-            showErrorPopup(null, error.responseJSON.message);
+            let errMessage = null;
+            if (error.responseJSON.message) {
+                errMessage = error.responseJSON.message;
+            }
+            showErrorPopup(null, errMessage);
         }
     })
 }

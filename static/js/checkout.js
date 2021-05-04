@@ -1,7 +1,7 @@
 $( document ).ready(function() {
     // creatLoginNav();
 
-    getCart(createBillPanel);
+    getCart(createBillPanel, true);
     // should be called after creating every UI elements
     applyTemplateAnimation();
 });
@@ -34,6 +34,7 @@ function placeOrder() {
         return;
     }
 
+
     showLoader();
     $.ajax({
         type: "POST",
@@ -49,7 +50,11 @@ function placeOrder() {
         error: function (error) {
             hideLoader();
             console.log('error', error);
-            showErrorPopup(null, error.responseJSON.message);
+            let errMessage = null;
+            if (error.responseJSON.message) {
+                errMessage = error.responseJSON.message;
+            }
+            showErrorPopup(null, errMessage);
         }
     })
 }

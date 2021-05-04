@@ -8,7 +8,6 @@ import json
 import bcrypt
 import datetime
 import re
-# import phonenumbers
 import os
 from password_strength import PasswordPolicy
 from werkzeug.utils import secure_filename
@@ -19,7 +18,6 @@ app = Flask(__name__)
 username = urllib.parse.quote("admin")
 password = urllib.parse.quote("admin")
 
-# url = mongodb+srv://<username>:<password>
 url = "mongodb+srv://" + username + ":" + password + "@cluster0.riul3.mongodb.net/beer_wine_website?retryWrites=true&w=majority"
 cluster = pymongo.MongoClient(url)
 db = cluster["beer_wine_website"]
@@ -33,7 +31,6 @@ app.secret_key = 'my secret key'
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 # PAGE RENDERS
 
 @app.route("/")
@@ -41,6 +38,8 @@ def main():
     is_logged_in = False
     if session.get('user'):
         is_logged_in = True
+        if session.get('user')['is_admin']:
+            return render_template('admin.html', is_logged_in=is_logged_in)
     return render_template('index.html', is_logged_in=is_logged_in)
 
 
@@ -57,7 +56,10 @@ def login_signup():
 def account():
     if session.get('user'):
         is_logged_in = True
-        return render_template('my-account.html', is_logged_in=is_logged_in)
+        if session.get('user')['is_admin']:
+            return render_template('admin.html', is_logged_in=is_logged_in)
+        else:
+            return render_template('my-account.html', is_logged_in=is_logged_in)
     else:
         return redirect("/login")
 
@@ -74,7 +76,10 @@ def logout():
 def admin():
     if session.get('user'):
         is_logged_in = True
-        return render_template('admin.html', is_logged_in=is_logged_in)
+        if session.get('user')['is_admin']:
+            return render_template('admin.html', is_logged_in=is_logged_in)
+        else:
+            return redirect("/")
     else:
         return redirect("/login")
 
@@ -84,6 +89,9 @@ def products():
     is_logged_in = False
     if session.get('user'):
         is_logged_in = True
+        if session.get('user')['is_admin']:
+            return render_template('admin.html', is_logged_in=is_logged_in)
+
     return render_template('product-list.html', is_logged_in=is_logged_in)
 
 
@@ -91,7 +99,10 @@ def products():
 def cart():
     if session.get('user'):
         is_logged_in = True
-        return render_template('cart.html', is_logged_in=is_logged_in)
+        if session.get('user')['is_admin']:
+            return render_template('admin.html', is_logged_in=is_logged_in)
+        else:
+            return render_template('cart.html', is_logged_in=is_logged_in)
     else:
         return redirect("/login")
 
@@ -113,20 +124,6 @@ def get_search_page(search_query):
     return render_template('product-list.html', is_logged_in=is_logged_in, search_query=search_query)
 
 
-# @app.route("/login")
-# def sign_up():
-#     is_logged_in = False
-#     if session.get('user'):
-#         is_logged_in = True
-#     return render_template('login.html', is_logged_in=is_logged_in)
-
-# @app.route("/sign_in")
-# def sign_in():
-#     return render_template('signin.html')
-
-# POST FUNCTIONS
-
-
 # completed
 @app.route("/val_sign_up", methods=["POST"])
 def val_sign_up():
@@ -145,24 +142,12 @@ def val_sign_up():
         return json.dumps({"status": "failed", "message": "Username already exists."}), 409
     if collection.find_one({"email_id": email_id}):
         return json.dumps({"status": "failed", "message": "Email address already exists."}), 409
-    # if collection.find_one({"contact_no": contact_no}):
-    #     return json.dumps({"status": "failed", "message": "contact no already exists"})
-    # if collection.find_one({"govt_id": govt_id}):
-    #     return json.dumps({"status": "failed", "message": "govt_id already exists"})
 
     # email address validation
     email_regex = r"^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
     if not re.search(email_regex, email_id):
         return jsonify({"status": "failed", "message": "invalid email address"}), 406
 
-    # password validation
-    # policy = PasswordPolicy.from_names(
-    #     length=8,  # min length: 8
-    #     uppercase=2,  # need min. 2 uppercase letters
-    #     numbers=2,  # need min. 2 digits
-    #     special=2,  # need min. 2 special characters
-    #     nonletters=2,  # need min. 2 non-letter characters (digits, specials, anything)
-    # )
     policy = PasswordPolicy.from_names(
         length=8,  # min length: 8
         uppercase=1,  # need min. 1 uppercase letters
@@ -172,11 +157,6 @@ def val_sign_up():
 
     if len(policy.test(password)) > 0:
         return jsonify({"status": "failed", "message": "password not strong enough"}), 406
-
-    # # phone number validation
-    # ph_number = phonenumbers.parse(str(contact_no), "US")
-    # if not phonenumbers.is_valid_number(ph_number):
-    #     return jsonify({"status": "failed", "message": "invalid phone number"}), 406
 
     try:
         user_id = collection.insert_one({
@@ -189,20 +169,12 @@ def val_sign_up():
             "govt_id": govt_id,
             "isAdmin": False
         }).inserted_id
-        # res.set_cookie(
-        #     "data",
-        #     max_age=3600,
-        #     expires=None,
-        #     path=request.path,
-        #     domain=None,
-        #     secure=False
-        # )
+
         session['user'] = {'user_name': user_name, 'user_id': str(user_id), 'is_admin': False}
         return json.dumps({"status": "success"}), 200
     except Exception as e:
         print("error in signup: ", e)
         return json.dumps({"status": "failed"}), 500
-
 
 
 # completed
@@ -214,9 +186,6 @@ def val_sign_in():
     password = request_json["password"]
 
     is_admin = request_json["is_admin"]
-
-    # user_name = request.args.get("user_name")
-    # password = request.args.get("password")
 
     collection = db["customer_details"]
 
@@ -230,20 +199,26 @@ def val_sign_in():
 
     if db_check is None:
         return json.dumps({"status": "failed", "message": "Unauthorized access"}), 406
+    try:
+        if db_check and bcrypt.checkpw(password.encode("utf-8"), db_check["password"]):
+            res = make_response(json.dumps({
+                "status": "success",
+            }))
 
-    if db_check and bcrypt.checkpw(password.encode("utf-8"), db_check["password"]):
-        res = make_response(json.dumps({
-            "status": "success",
-        }))
-
-        session['user'] = {'user_name': user_name, 'user_id': str(db_check['_id']), 'is_admin': is_admin}
-        return res, 200
-    else:
-        return json.dumps({"status": "failed", "message": "Invalid login credentials"}), 406
+            session['user'] = {'user_name': user_name, 'user_id': str(db_check['_id']), 'is_admin': is_admin}
+            return res, 200
+        else:
+            return json.dumps({"status": "failed", "message": "Invalid login credentials."}), 406
+    except Exception as e:
+        return json.dumps({"status": "failed", "message": "Unauthorized access."}), 406
 
 
 @app.route("/add_shipping_address", methods=["POST", "GET"])
 def add_shipping_address():
+
+    if session.get('user') is None:
+        return json.dumps({"status": "failed", "message": "User is not logged in."}), 406
+
     request_json = request.json
 
     customer_id = session.get('user')['user_id']
@@ -258,7 +233,6 @@ def add_shipping_address():
     zip_code = request_json["zip_code"]
     country = request_json["country"]
 
-
     collection = db["customer_details"]
 
     try:
@@ -266,13 +240,16 @@ def add_shipping_address():
                                                                             {'first_name': first_name, 'last_name': last_name, 'email': email, 'phone': phone,
                                                                              'address': address, 'city': city, 'state': state, 'zip_code': zip_code, 'country': country}}})
     except Exception as e:
-        return json.dumps({"status": "failed"}), 500
+        return json.dumps({"status": "failed", "message": "Failed to add shipping address."}), 500
 
     return json.dumps({"status": "success"}), 200
 
 
 @app.route("/get_shipping_address", methods=["GET"])
 def get_shipping_address():
+
+    if session.get('user') is None:
+        return json.dumps({"status": "failed", "message": "User is not logged in."}), 406
 
     customer_id = session.get('user')['user_id']
     collection = db["customer_details"]
@@ -285,18 +262,10 @@ def get_shipping_address():
 # completed
 @app.route("/add_to_products", methods=["POST"])
 def add_to_products():
+
     user = session.get('user')
 
     if user and user['is_admin']:
-        # request_json = request.json
-        #
-        # name = request_json["name"]
-        # brand = request_json["brand"]
-        # description = request_json["description"]
-        # stock = request_json["stock"]
-        # category = request_json["category"]
-        # price = request_json["price"]
-        # images = request_json["images"]
 
         files = request.files.getlist('files[]')
         name = request.form["name"]
@@ -306,13 +275,6 @@ def add_to_products():
         category = request.form["category"].lower()
         price = request.form["price"]
 
-        # name = request.args.get("name")
-        # brand = request.args.get("brand")
-        # description = request.args.get("description")
-        # stock = request.args.get("stock")
-        # category = request.args.get("category")
-        # price = request.args.get("price")
-        # images = request.args.getlist("images")
         deleted = False
 
         collection = db["product_details"]
@@ -340,39 +302,8 @@ def add_to_products():
 
             return json.dumps({"status": "success"}), 200
         except:
-            return json.dumps({"status": "failed"}), 500
-    return json.dumps({"status": "failed"}), 403
-
-
-# POST/PUT FUNCTIONS
-
-#
-# # completed
-# @app.route("/add_to_wishlist", methods=["POST", "PUT"])
-# def add_to_wishlist():
-#
-#     customer_id = request.args.get("customer_id")
-#     product_id = request.args.get("product_id")
-#
-#     collection = db["wishlist"]
-#
-#     db_check = collection.find_one({"customer_id": customer_id})
-#
-#     try:
-#
-#         if db_check:
-#             collection.update_one({"customer_id": customer_id},
-#             {"$set": {"product_ids": list(set(db_check["product_ids"] + [product_id]))}})
-#         else:
-#             collection.insert_one({
-#                 "customer_id": customer_id,
-#                 "product_ids": [product_id]
-#             })
-#
-#         return json.dumps({"status": "success"}), 200
-#
-#     except:
-#         return json.dumps({"status": "failed"}), 500
+            return json.dumps({"status": "failed", "message": "Failed to add product."}), 500
+    return json.dumps({"status": "failed", "message": "User must be logged in."}), 403
 
 
 # completed
@@ -386,10 +317,6 @@ def add_to_cart():
         customer_id = user['user_id']
         product_id = request_json["product_id"]
         quantity = request_json["quantity"]
-
-        # customer_id = request.args.get("customer_id")
-        # product_id = request.args.get("product_id")
-        # quantity = request.args.get("quantity")
 
         collection = db["cart"]
 
@@ -432,176 +359,76 @@ def add_to_cart():
 
     return json.dumps({"status": "failed", "message": "User must be logged in."}), 403
 
-# completed
-# old code
-# @app.route("/add_to_cart", methods=["POST", "PUT"])
-# def add_to_cart():
-#     user = session.get('user')
-#     if user:
-#         request_json = request.json
-
-#         customer_id = user['user_name']
-#         product_id = request_json["product_id"]
-#         quantity = request_json["quantity"]
-
-#         # customer_id = request.args.get("customer_id")
-#         # product_id = request.args.get("product_id")
-#         # quantity = request.args.get("quantity")
-
-#         collection = db["cart"]
-
-#         db_check = collection.find_one({"customer_id": customer_id})
-
-#         try:
-
-#             if db_check:
-#                 total_price = db_check["total_price"]
-#                 total_price += float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
-#                 collection.update_one({"customer_id": customer_id},
-#                                       {"$set": {"product_ids": list(db_check["product_ids"] + [{"product_id": product_id, "quantity": int(quantity)}]),
-#                                                 "total_price": total_price}})
-#             else:
-#                 collection.insert_one({
-#                     "customer_id": customer_id,
-#                     "product_ids": [{"product_id": product_id, "quantity": int(quantity)}],
-#                     "total_price": float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * float(quantity)
-#                 })
-#             return json.dumps({"status": "success"})
-#         except:
-#             return json.dumps({"status": "failed"})
-
-#     return json.dumps({"status": "failed"})
-
-
-# # completed
-# @app.route("/rem_from_wishlist", methods=["PUT"])
-# def rem_from_wishlist():
-#
-#     customer_id = request.args.get("customer_id")
-#     product_id = request.args.get("product_id")
-#
-#     collection = db["wishlist"]
-#
-#     db_check = collection.find_one({"customer_id": customer_id})
-#
-#     try:
-#         if db_check:
-#             if product_id in db_check["product_ids"]:
-#                 temp_product_ids = db_check["product_ids"]
-#                 temp_product_ids.remove(product_id)
-#                 collection.update_one({"customer_id": customer_id},
-#                                       {"$set": {"product_ids": list(set(temp_product_ids))}})
-#             else:
-#                 return json.dumps({"status": "failed"})
-#         else:
-#             return json.dumps({"status": "failed", "message": "customer id not found"}), 404
-#         return json.dumps({"status": "success"}), 200
-#     except:
-#         return json.dumps({"status": "failed"}), 500
-
-
-# # completed
-# @app.route("/rem_from_cart", methods=["PUT"])
-# def rem_from_cart():
-#
-#     customer_id = request.args.get("customer_id")
-#     product_id = request.args.get("product_id")
-#
-#     collection = db["cart"]
-#
-#     db_check = collection.find_one({"customer_id": customer_id})
-#
-#     try:
-#         if db_check:
-#             current_total_price = float(db_check["total_price"])
-#             product_ids = [entry["product_id"] for entry in db_check["product_ids"]]
-#             if product_id in product_ids:
-#                 temp_product_ids = db_check["product_ids"]
-#                 price_of_removed_product, updated_product_ids = 0, []
-#                 for entry in temp_product_ids:
-#                     if entry.get("product_id") == product_id:
-#                         price_of_removed_product = float(db["product_details"].find_one({"_id": ObjectId(product_id)})["price"]) * entry.get("quantity")
-#                     else:
-#                         updated_product_ids.append(entry)
-#                 collection.update_one({"customer_id": customer_id},
-#                                       {"$set": {"product_ids": updated_product_ids,
-#                                                 "total_price": current_total_price - price_of_removed_product}})
-#             else:
-#                 return json.dumps({"status": "failed", "message": "product id not found"}), 406
-#         else:
-#             return json.dumps({"status": "failed", "message": "customer id not found"}), 406
-#         return json.dumps({"status": "success"}), 200
-#     except:
-#         return json.dumps({"status": "failed"}), 500
-
 
 # completed
 @app.route("/place_order", methods=["POST"])
 def place_order():
-    customer_id = session.get('user')['user_id']
-    # customer_id = request.args.get("customer_id")
-    shipping_address = request.json["shipping_address"]
-    # shipping_address = request.args.get("shipping_address")
+    if session.get('user'):
+        customer_id = session.get('user')['user_id']
+        # customer_id = request.args.get("customer_id")
+        shipping_address = request.json["shipping_address"]
+        # shipping_address = request.args.get("shipping_address")
 
-    if not shipping_address:
-        shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["shipping_address"]
+        if not shipping_address:
+            shipping_address = db["customer_details"].find_one({"_id": ObjectId(customer_id)})["shipping_address"]
 
-    collection = db["cart"]
+        collection = db["cart"]
 
-    db_check = collection.find_one({"customer_id": customer_id})
+        db_check = collection.find_one({"customer_id": customer_id})
 
-    if db_check:
+        if db_check:
 
-        # check whether quantity of products exists in inventory stock
-        products_present_in_inventory = True
-        store_queries_to_run = []
-        for product_data in db_check["product_ids"]:
-            product_id, product_quantity = product_data["product_id"], product_data["quantity"]
-            product_in_db = db["product_details"].find_one({"_id": ObjectId(product_id)})
-            if product_in_db:
-                if int(product_in_db["stock"]) < int(product_quantity):
-                    products_present_in_inventory = False
-                    break
-                else:
-                    store_queries_to_run.append(
-                        {"product_id": product_id, "stock": int(product_in_db["stock"]) - int(product_quantity)})
+            # check whether quantity of products exists in inventory stock
+            products_present_in_inventory = True
+            store_queries_to_run = []
+            for product_data in db_check["product_ids"]:
+                product_id, product_quantity = product_data["product_id"], product_data["quantity"]
+                product_in_db = db["product_details"].find_one({"_id": ObjectId(product_id)})
+                if product_in_db:
+                    if int(product_in_db["stock"]) < int(product_quantity):
+                        products_present_in_inventory = False
+                        break
+                    else:
+                        store_queries_to_run.append(
+                            {"product_id": product_id, "stock": int(product_in_db["stock"]) - int(product_quantity)})
 
-        if products_present_in_inventory:
-            for queries in store_queries_to_run:
-                if queries["stock"] == 0:
-                    db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
-                                                     {"$set": {"stock": queries["stock"], "deleted": True}})
-                else:
-                    db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
-                                                     {"$set": {"stock": queries["stock"]}})
+            if products_present_in_inventory:
+                for queries in store_queries_to_run:
+                    if queries["stock"] == 0:
+                        db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+                                                         {"$set": {"stock": queries["stock"], "deleted": True}})
+                    else:
+                        db["product_details"].update_one({"_id": ObjectId(queries["product_id"])},
+                                                         {"$set": {"stock": queries["stock"]}})
 
+                # add the current cart to order to fetch the order details in user dashboard
+                customer_cart = db_check
+                for index, product in enumerate(db_check["product_ids"]):
+                    product_id = product["product_id"]
+                    customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
+                        {"_id": ObjectId(product_id)})
 
-            # add the current cart to order to fetch the order details in user dashboard
-            customer_cart = db_check
-            for index, product in enumerate(db_check["product_ids"]):
-                product_id = product["product_id"]
-                customer_cart["product_ids"][index]["product_details"] = db["product_details"].find_one(
-                    {"_id": ObjectId(product_id)})
+                shipping = round(min(12, 0.15 * float(db_check["total_price"])), 2)
+                db["orders"].insert_one({
+                    "customer_id": customer_id,
+                    "shipping_address": shipping_address,
+                    "order_date": datetime.datetime.now(),
+                    # "product_ids": db_check["product_ids"],
+                    "customer_cart": customer_cart,
+                    "total_price_post_charges": round((float(db_check["total_price"]) + shipping), 2),
+                    "order_status": "order received"
+                })
 
-            shipping = round(min(12, 0.15 * float(db_check["total_price"])), 2)
-            db["orders"].insert_one({
-                "customer_id": customer_id,
-                "shipping_address": shipping_address,
-                "order_date": datetime.datetime.now(),
-                # "product_ids": db_check["product_ids"],
-                "customer_cart": customer_cart,
-                "total_price_post_charges": round((float(db_check["total_price"]) + shipping), 2),
-                "order_status": "order received"
-            })
+                db["cart"].delete_one({"customer_id": customer_id})
 
-            db["cart"].delete_one({"customer_id": customer_id})
+                return json.dumps({"status": "success"}), 200
+            else:
+                return json.dumps({"status": "failed", "message": "quantity of a product more than inventory stock"}), 406
 
-            return json.dumps({"status": "success"}), 200
         else:
-            return json.dumps({"status": "failed", "message": "quantity of a product more than inventory stock"}), 406
-
+            return json.dumps({"status": "failed", "message": "customer id not found"}), 406
     else:
-        return json.dumps({"status": "failed", "message": "customer id not found"}), 406
+        return json.dumps({"status": "failed", "message": "User must be logged in to place the order."}), 403
 
 
 # completed
@@ -611,7 +438,6 @@ def update_product_details():
     user = session.get('user')
 
     if user and user['is_admin']:
-
 
         product_id = request.form["product_id"]
         name = request.form["name"]
@@ -626,28 +452,6 @@ def update_product_details():
         print(deleted_images)
         # to add images from server and db
         files = request.files.getlist('files[]')
-
-
-
-        # request_json = request.json
-        #
-        # product_id = request_json["product_id"]
-        # name = request_json["name"]
-        # brand = request_json["brand"]
-        # description = request_json["description"]
-        # stock = request_json["stock"]
-        # category = request_json["category"]
-        # price = request_json["price"]
-        # images = request_json["images"]
-
-        # product_id = request.args.get("product_id")
-
-        # brand = request.args.get("brand")
-        # description = request.args.get("description")
-        # stock = request.args.get("stock")
-        # category = request.args.get("category")
-        # price = request.args.get("price")
-        # images = request.args.getlist("images")
 
         collection = db["product_details"]
 
@@ -711,108 +515,36 @@ def update_product_details():
                 return json.dumps({"status": "success"}), 200
 
             else:
-                return json.dumps({"status": "failed", "message": "product id not found"}), 406
+                return json.dumps({"status": "failed", "message": "product id not found."}), 406
 
         except Exception as e:
-            return json.dumps({"status": "failed"}), 500
-    return json.dumps({"status": "failed"}), 401
+            return json.dumps({"status": "failed", "message": "Failed to update product."}), 500
+    return json.dumps({"status": "failed", "message": "Unauthorized access."}), 401
 
-
-# # completed
-# @app.route("/update_cart", methods=["PUT"])
-# def update_cart():
-
-#     customer_id = request.args.get("customer_id")
-#     product_id = request.args.get("product_id")
-#     quantity = request.args.get("quantity")
-
-#     collection = db["cart"]
-
-#     db_check = collection.find_one({"customer_id": customer_id})
-
-#     if db_check:
-#         updated_product_details, product_id_found, old_quantity = [], False, None
-#         for product_data in db_check["product_ids"]:
-#             if product_data["product_id"] == product_id:
-#                 product_id_found = True
-#                 old_quantity = product_data["quantity"]
-#                 updated_product_details.append({"product_id": product_id, "quantity": int(quantity)})
-#             else:
-#                 updated_product_details.append(product_data)
-#     else:
-#         return json.dumps({"status": "failed", "message": "customer id not found"})
-#     if product_id_found:
-#         change_in_quantity = int(quantity) - int(old_quantity)
-#         price_change = db["product_details"].find_one({"_id": ObjectId(product_id)})["price"] * change_in_quantity
-#         collection.update_one({"customer_id": customer_id}, 
-#                               {"$set": {"product_ids": updated_product_details,
-#                                         "total_price": db_check["total_price"] + price_change}})
-#         return json.dumps({"status": "success"})
-#     else:
-#         return json.dumps({"status": "failed"})
 
 @app.route("/update_cart", methods=["PUT"])
 def update_cart():
     cart_object = request.json['cart']
 
     collection = db["cart"]
-
-    # total_price = 0
-    # for products in cart_object["product_ids"]:
-    #     product_details = db["product_details"].find_one({"_id": ObjectId(products["product_id"])})
-    #     if product_details:
-    #         total_price += float(products["quantity"]) * float(product_details["price"])
-    #     else:
-    #         return json.dumps({"status": "failed", "message": "product_id not found"}), 406
-
-    # try:
-    #     collection.update_one({"customer_id": cart_object["customer_id"]},
-    #                           {"$set": {"product_ids": cart_object["product_ids"],
-    #                                     "total_price": total_price}})
     try:
         collection.update_one({"customer_id": cart_object["customer_id"]},
                               {"$set": {"product_ids": cart_object["product_ids"],
                                         "total_price": cart_object["total_price"]}})
         return json.dumps({"status": "success"}), 200
     except:
-        return json.dumps({"status": "failed"}), 500
+        return json.dumps({"status": "failed", "message": "Failed to update cart."}), 500
 
 
 # DELETE FUNCTIONS
 
-# # completed
-# @app.route("/clear_wishlist", methods=["DELETE"])
-# def empty_wishlist():
-#
-#     customer_id = request.args.get("customer_id")
-#
-#     collection = db["wishlist"]
-#
-#     try:
-#         collection.delete_one({"customer_id": customer_id})
-#         return json.dumps({"status": "success"}), 200
-#     except:
-#         return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
-
-
-# # completed
-# @app.route("/clear_cart", methods=["DELETE"])
-# def empty_cart():
-#
-#     customer_id = request.args.get("customer_id")
-#
-#     collection = db["cart"]
-#
-#     try:
-#         collection.delete_one({"customer_id": customer_id})
-#         return json.dumps({"status": "success"}), 200
-#     except:
-#         return json.dumps({"status": "failed", "message": "customer_id not found"}), 406
-
-
 # completed
 @app.route("/rem_from_products", methods=["DELETE"])
 def rem_from_products():
+
+    if session.get('user') is None or session.get('user')['is_admin'] == False:
+        return json.dumps({"status": "failed", "message": "Unauthorized access."}), 401
+
     product_id = request.args.get("product_id")
     collection = db["product_details"]
 
@@ -825,28 +557,13 @@ def rem_from_products():
             product_price = db_check["price"]
             collection.update_one({"_id": ObjectId(product_id)}, {"$set": {"deleted": True, "stock": 0}})
 
-            # put the change in everyones cart who has the updated product_id 
-            # for entry in db["cart"].find():
-            #     updated_product_ids, product_id_found = [], False
-            #     for product_data in entry["product_ids"]:
-            #         if product_data["product_id"] == product_id:
-            #             product_id_found = True
-            #             db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-            #                                   {"$set": {"total_price": float(entry["total_price"]) - product_price *
-            #                                                            product_data["quantity"]}})
-            #         else:
-            #             updated_product_ids.append(product_data)
-            #     if product_id_found:
-            #         db["cart"].update_one({"_id": ObjectId(entry["_id"])},
-            #                               {"$set": {"product_ids": updated_product_ids}})
-
             return json.dumps({"status": "success"}), 200
 
         else:
             return json.dumps({"status": "failed", "message": "product id not found"}), 406
 
     except:
-        return json.dumps({"status": "failed"}), 500
+        return json.dumps({"status": "failed", "message": "failed to remove from cart"}), 500
 
 
 # GET FUNCTIONS
@@ -905,7 +622,6 @@ def get_products():
     return dumps({'products': output, 'total_pages': total_pages}), 200
 
 
-
 @app.route("/product_detail/<prod_id>", methods=["GET"])
 def product_detail(prod_id):
     print('get_product_detail request made with id', prod_id)
@@ -947,26 +663,19 @@ def get_cart():
             return dumps(customer_cart), 200
         return json.dumps([]), 200
 
-    return json.dumps({"status": "failed"}), 401
+    return json.dumps({"status": "failed", "message": "Unauthorized access"}), 401
 
 
-# # completed
-# @app.route("/get_wishlist", methods=["GET"])
-# def get_wishlist():
-#     customer_id = request.args.get("customer_id")
-#     wishlist = db["wishlist"]
-#     return dumps(list(wishlist.find({"customer_id": customer_id}))), 200
-
-
-# completed
 @app.route("/get_orders", methods=["GET"])
 def get_orders():
-    # customer_id = request.args.get("customer_id")
-    customer_id = session.get('user')['user_id']
-    if not customer_id:
-        customer_id = {"$exists": True}
-    orders = db["orders"]
-    return dumps(list(orders.find({"customer_id": customer_id}))), 200
+    if session.get('user'):
+        customer_id = session.get('user')['user_id']
+        if not customer_id:
+            customer_id = {"$exists": True}
+        orders = db["orders"]
+        return dumps(list(orders.find({"customer_id": customer_id}))), 200
+    else:
+        return json.dumps({"status": "failed", "message": "Unauthorized access"}), 401
 
 
 if __name__ == "__main__":

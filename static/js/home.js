@@ -55,7 +55,7 @@ function creatHomeSlider(sliderData) {
             `<img src="../static/img/${data}" alt="Slider Image" />` + 
                 '<div class="header-slider-caption">' + 
                     '<p>Some text goes here that describes the image</p>' + 
-                    '<a class="btn" href=""><i class="fa fa-shopping-cart"></i>Shop Now</a>' + 
+                    '<a class="btn" href="/products"><i class="fa fa-shopping-cart"></i>Shop Now</a>' + 
                 '</div>' + 
         '</div>'
     })

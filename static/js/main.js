@@ -1,8 +1,8 @@
 let isLoggedIn = false;
 
-let sliderData = ['slider-1.jpg', 'slider-2.jpg', 'slider-2.jpg'];
+let sliderData = ['slider-1.jpg', 'slider-2.jpg', 'slider-3.jpg'];
 
-let pageLimit = 5;
+let pageLimit = 8;
 let totalPages = 2;
 
 let products = [
@@ -231,7 +231,11 @@ function addToCart(productId, qty, isProdId, callback) {
         error: function (error) {
             hideLoader();
             console.log('error', error);
-            showErrorPopup(null, error.responseJSON.message);
+            let errMessage = null;
+            if (error.responseJSON.message) {
+                errMessage = error.responseJSON.message;
+            }
+            showErrorPopup(null, errMessage);
         }
     })
 
@@ -270,7 +274,7 @@ function getSearchPage() {
     }
 }
 
-function getCart(callback) {
+function getCart(callback, reqFromCheckoutPg) {
 
     showLoader();
     $.ajax({
@@ -280,6 +284,10 @@ function getCart(callback) {
         success: function (response) {
             hideLoader();
             cartData = response;
+            if (reqFromCheckoutPg && response.product_ids.length == 0) {
+                window.location.href = "/cart";
+                return;
+            }
             if (callback)
                 callback(response);
         },
