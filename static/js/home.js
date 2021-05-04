@@ -52,9 +52,9 @@ function creatHomeSlider(sliderData) {
     let sliderDiv = $('#home-slider')
     sliderData.forEach((data)=> {
         sliderHtml+= '<div class="header-slider-item">' + 
-            `<img src="../static/img/${data}" alt="Slider Image" />` + 
+            `<img class="home-slider-img" src="../static/img/${data}" alt="Slider Image" />` + 
                 '<div class="header-slider-caption">' + 
-                    '<p>Some text goes here that describes the image</p>' + 
+                    '<p>Shop wines, beers, & spirits at the best prices, selection, & service</p>' + 
                     '<a class="btn" href="/products"><i class="fa fa-shopping-cart"></i>Shop Now</a>' + 
                 '</div>' + 
         '</div>'
