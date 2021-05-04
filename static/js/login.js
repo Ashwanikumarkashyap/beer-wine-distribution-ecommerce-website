@@ -27,7 +27,7 @@ function register() {
         return false;
     }
 
-    if (mobile.trim().length!=10) { 
+    if (mobile.trim().length!=10 || parseInt(mobile.trim()) <=0) { 
         showErrorPopup("Invalid Phone Number", "Please Enter a valid phone number.");
         return false;
     }

@@ -16,7 +16,7 @@ function updateProductDetail(myProduct) {
     $("#prod-detail-name").html(product.name);
     $("#prod-detail-price").html("$" + product.price);
     $("#prod-detail-stock").html("Stock: " + product.stock);
-    $("#product-desc").html("Stock: " + product.description);
+    $("#product-desc").html(product.description);
     
     createProductDetailSliders(myProduct);
 }
