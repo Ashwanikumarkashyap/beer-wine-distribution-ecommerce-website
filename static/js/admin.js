@@ -131,10 +131,16 @@ function attachListeners() {
         $('#product-qty-field').val(adminProducts[prodIdx].stock);
         $('#product-brand-field').val(adminProducts[prodIdx].brand);
         $('#product-desc-field').val(adminProducts[prodIdx].description);
-        $('#product-category-field').val(adminProducts[prodIdx].category);
 
-        // $("admin-submit-btn").attr("onclick","editProduct()");
-        // $("admin-submit-btn").text("Save Changes");
+        
+
+        if (adminProducts[prodIdx].category == "beer") {
+            $('#product-category-field option[value="beer"]').attr("selected",true);
+            $('#product-category-field option[value="wine"]').attr("selected",false);
+        } else {
+            $('#product-category-field option[value="wine"]').attr("selected",true);
+            $('#product-category-field option[value="beer"]').attr("selected",false);
+        }
 
         deletedImages = new Set()
         if (adminProducts[prodIdx].images.length >0) {
@@ -198,7 +204,8 @@ function attachListeners() {
         $('#product-qty-field').val(1);
         $('#product-brand-field').val("");
         $('#product-desc-field').val("");
-        $('#product-category-field').val("Bear");
+        // $('#product-category-field').val("Beer");
+        $('#product-category-field option[value="beer"]').attr("selected",true);
 
         $("#admin-save-btn").hide();
         $("#admin-add-btn").show();
