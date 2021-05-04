@@ -103,20 +103,25 @@ function nextPage() {
     let lastPgNo = parseInt($(".page-text").last().text());
 
     if (lastPgNo == totalPages) {
-        $("next-page").addClass("disabled");
         return;
+    } else if (lastPgNo == totalPages-1) {
+        $("#next-page").addClass("disabled");
     } else {
-        $("next-page").removeClass("disabled");
+        $("#next-page").removeClass("disabled");
     }
 
-    // let searchQuery = $("#filter-search").val();
+
+    $("#prev-page").removeClass("disabled");
+
+    // let searchQuery = $("#admin-search-input").val();
     // if (searchQuery.trim()== "") {
     //     searchQuery = null;
     // }
 
-    // getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createProductList);
+    // getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createAdminList);
 
-    filterSearch((pageNo+1));
+    let pageNo = parseInt($('.active').text());
+    filterSearch(pageNo+1);
 
     $(".page-text").each(function(){
         let page = parseInt($(this).text());
@@ -129,21 +134,24 @@ function prevPage() {
     let lastPgNo = parseInt($(".page-text").last().text());
     let firstPageNo = parseInt($(".page-text").first().text());
 
-    if (firstPageNo == 1) {
-        $("prev-page").addClass("disabled");
+    if (firstPageNo == 2) {
+        $("#prev-page").addClass("disabled");
+    } else if (firstPageNo == 1) {
+        $("#prev-page").addClass("disabled");
         return;
     } else {
-        $("prev-page").removeClass("disabled");
+        $("#prev-page").removeClass("disabled");
     }
 
-    // let searchQuery = $("#filter-search").val();
+    $("#next-page").removeClass("disabled");
+
+    // let searchQuery = $("#admin-search-input").val();
     // if (searchQuery.trim()== "") {
     //     searchQuery = null;
     // }
-
-    // getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createProductList);
-
-    filterSearch((pageNo-1));
+    let pageNo = parseInt($('.active').text());
+    filterSearch(pageNo-1);
+    // getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createAdminList);
 
     $(".page-text").each(function(){ 
         let page = parseInt($(this).text());

@@ -376,11 +376,15 @@ function nextPage() {
     let lastPgNo = parseInt($(".page-text").last().text());
 
     if (lastPgNo == totalPages) {
-        $("next-page").addClass("disabled");
         return;
+    } else if (lastPgNo == totalPages-1) {
+        $("#next-page").addClass("disabled");
     } else {
-        $("next-page").removeClass("disabled");
+        $("#next-page").removeClass("disabled");
     }
+
+
+    $("#prev-page").removeClass("disabled");
 
     // let searchQuery = $("#admin-search-input").val();
     // if (searchQuery.trim()== "") {
@@ -389,6 +393,7 @@ function nextPage() {
 
     // getProductsWithSearch(searchQuery, (pageNo+1), pageLimit, null, null, null, createAdminList);
 
+    let pageNo = parseInt($('.active').text());
     filterSearch(pageNo+1);
 
     $(".page-text").each(function(){
@@ -402,17 +407,22 @@ function prevPage() {
     let lastPgNo = parseInt($(".page-text").last().text());
     let firstPageNo = parseInt($(".page-text").first().text());
 
-    if (firstPageNo == 1) {
-        $("prev-page").addClass("disabled");
+    if (firstPageNo == 2) {
+        $("#prev-page").addClass("disabled");
+    } else if (firstPageNo == 1) {
+        $("#prev-page").addClass("disabled");
         return;
     } else {
-        $("prev-page").removeClass("disabled");
+        $("#prev-page").removeClass("disabled");
     }
+
+    $("#next-page").removeClass("disabled");
 
     // let searchQuery = $("#admin-search-input").val();
     // if (searchQuery.trim()== "") {
     //     searchQuery = null;
     // }
+    let pageNo = parseInt($('.active').text());
     filterSearch(pageNo-1);
     // getProductsWithSearch(searchQuery, (pageNo-1), pageLimit, null, null, null, createAdminList);
 
