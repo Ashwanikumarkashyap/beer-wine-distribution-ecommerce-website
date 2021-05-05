@@ -345,14 +345,14 @@ function fetchAddress() {
     let emailValRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     var emailCheck = new RegExp(emailValRegex);
 
-    if (!emailCheck.test(email)) { 
-        showErrorPopup("Invalid Email Address", "Please Enter a valid Email Adresss");
-        return false;
-    }
-
     if (firstName.trim() == "" || lastName.trim() == "" || email.trim() == "" || mobile.trim() == "" || 
     country.trim() == "" || city.trim() == "" || state.trim() == "" || zip.trim() == "" || addressText.trim() == "") {
         showErrorPopup("Missing Required Fields", "All the required input address fields should be filled to place the order.");
+        return false;
+    }
+
+    if (!emailCheck.test(email)) { 
+        showErrorPopup("Invalid Email Address", "Please Enter a valid Email Adresss");
         return false;
     }
 
