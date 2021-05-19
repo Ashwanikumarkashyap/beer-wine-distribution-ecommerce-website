@@ -1,7 +1,6 @@
 # Beer & Wine Distribution E-Commerce Website
 
-![](media/image1.png){width="6.452083333333333in"
-height="3.508880139982502in"}
+![](media/image1.png)
 
 ## 1 Project Description
 
@@ -34,10 +33,9 @@ ordered products history as well.
 
 ## 2 Architecture
 
-![](media/image2.png){width="6.5in" height="1.5913363954505686in"}
+![](media/image2.png)
 
-![](media/image3.jpg){width="5.635416666666667in"
-height="0.6354166666666666in"}
+![](media/image3.jpg)
 
 ## 3 Technologies Used
 
@@ -179,8 +177,7 @@ entry. We have also incorporated strong password checks and provide the
 error message if the user doesn't provide the password according to the
 constraint.
 
-![](media/image4.png){width="5.859375546806649in"
-height="3.3193000874890637in"}
+![](media/image4.png)
 
 After successful SignUp, we can see that an entry of the new user has
 been created in our customer\_details collection. Also, the password is
@@ -196,19 +193,16 @@ they can check the "Login as admin" check-box, and if credentials are
 successfully validated, the admin view will open instead of the user
 view.
 
-![](media/image5.png){width="5.833333333333333in"
-height="3.318642825896763in"}
+![](media/image5.png)
 
-3.  **Updating User Details**
+**5.3 Updating User Details**
 
 After logging in, an user can provide/update his/her shipping address
 details and other contact information. This information is populated
 automatically when an user tries to place the order. If not, then the
 user has to provide
 
-![](media/image6.png){width="5.4006944444444445in" height="2.775in"}
-
-**shipping address at the time of order placement**
+![](media/image6.png)
 
 After clicking on "Update Address", the changes are reflected in
 MongoDB.
@@ -219,8 +213,7 @@ Clicking on the "PRODUCTS" button on the Navigation pane, the user can
 view all the products available in the inventory with the price and the
 available stock.
 
-![](media/image7.png){width="5.9546183289588805in"
-height="3.3971861329833772in"}
+![](media/image7.png)
 
 **5.5 Searching & Filtering Products/View Products By Category**
 
@@ -228,14 +221,12 @@ The user has the option to filter by category. For example, selecting
 the category as wine and clicking on the search button shows all the
 wines available in the inventory.
 
-> ![](media/image8.png){width="5.3277777777777775in"
-> height="2.737865266841645in"}
+> ![](media/image8.png)
 
 On each page, we provide pagination as well. Users can go to different
 pages to see other products.
 
-![](media/image9.png){width="5.916666666666667in"
-height="3.2522703412073493in"}
+![](media/image9.png)
 
 **5.6 View Products by Price Range**
 
@@ -244,8 +235,7 @@ products. For example, here setting the price range between 60 and 100
 will show the products in that range. Paging functionality has also been
 incorporated in filtering functionality.
 
-![](media/image10.png){width="5.807292213473316in"
-height="3.3061318897637797in"}
+![](media/image10.png)
 
 **5.7 Product Search By Name**
 
@@ -256,23 +246,20 @@ searching using the phrase "Jacob" displays all the products with that
 phrase in their title. Paging functionality has also been incorporated
 in Searching functionality as well.
 
-![](media/image11.png){width="5.580896762904637in"
-height="3.1550503062117237in"}
+![](media/image11.png)
 
 **5.8 Adding Product To Cart**
 
 An user can hover over the item and the cart button will appear.
 Clicking on this button will add the product to the users Cart.
 
-![](media/image12.png){width="5.394444444444445in"
-height="3.072727471566054in"}
+![](media/image12.png)
 
 To view all the items a user has in their Cart, they can simply click on
 the cart button which appears on the upper right-hand corner of the
 screen.
 
-![](media/image13.png){width="5.738510498687664in"
-height="3.178993875765529in"}
+![](media/image13.png)
 
 Adding a product to the Cart is also reflected on the database.
 
@@ -282,8 +269,7 @@ The website also gives the user the functionality of modifying the Cart.
 One can easily change the quantity of the product they have added by
 clicking on the +/- buttons.
 
-![](media/image14.png){width="5.108840769903762in"
-height="2.93421697287839in"}
+![](media/image14.png)
 
 **The database is updated as well once the user changes the values and
 clicks the "Update Cart" button.**
@@ -293,8 +279,7 @@ clicks the "Update Cart" button.**
 Clicking on the trashcan icon that appears on the left side of each
 product removed the item from the users Cart.
 
-![](media/image15.png){width="5.666666666666667in"
-height="3.122156605424322in"}
+![](media/image15.png)
 
 Like quantity update, deletion is also reflected on the database.
 
@@ -303,33 +288,28 @@ Like quantity update, deletion is also reflected on the database.
 Once satisfied with the Cart items, an user can click on the "Checkout"
 button for proceeding with the order.
 
-![](media/image16.png){width="5.460100612423447in"
-height="3.0769663167104113in"}
+![](media/image16.png)
 
 The user will next have to provide a shipping address (or can stick with
 the default address) and has to choose a method of payment.
 
-![](media/image17.png){width="5.019949693788276in"
-height="2.9433727034120736in"}
+![](media/image17.png)
 
 **5.12 View Ordered Products History**
 
 To view all the orders/order history, an user can navigate to Orders by
 clicking "MY ACCOUNT" \> "ORDERS".
 
-![](media/image18.png){width="5.325694444444444in"
-height="3.029861111111111in"}
+![](media/image18.png)
 
 To view order summary, the user can click on the "View" button that
 appears on the left side of each
-order.![](media/image19.png){width="5.86548009623797in"
-height="3.3333333333333335in"}
+order.![](media/image19.png)
 
 After successfully placing an order, a new entry is created in the
 orders collection.
 
-![](media/image20.png){width="5.332176290463692in"
-height="2.4735476815398076in"}
+![](media/image20.png)
 
 Here, we can see that the whole Cart object is taken from the Cart
 collection and is added. Once added, the Cart entry is deleted from the
@@ -345,8 +325,7 @@ By logging as admin, an admin can view all the products in the
 inventory. He/She will be access to add/delete/update any product's
 image, description, quantity etc.
 
-![](media/image21.png){width="5.911458880139983in"
-height="3.35878280839895in"}
+![](media/image21.png)
 
 **5.15 Add/Delete/Update Product Details**
 
@@ -356,14 +335,11 @@ change the category of the product as well. For images, PNG and JPEG
 formats are allowed.
 
 ![Graphical user interface, application, Teams Description automatically
-generated](media/image22.png){width="5.174242125984252in"
-height="2.847916666666667in"}
+generated](media/image22.png)
 
 The updates are instantly reflected on the website and database.
 
-![](media/image23.png){width="6.5in"
-height="1.5555555555555556in"}![](media/image24.png){width="6.5in"
-height="1.1111111111111112in"}
+![](media/image23.png)![](media/image24.png)
 
 **5.16 Soft Deletion of Products**
 
@@ -371,12 +347,10 @@ Admin can soft delete a product by clicking on the trashcan icon that
 appears on the left side of each product. Once clicked, the button is
 greyed out confirming the deletion.
 
-![](media/image25.png){width="6.060416666666667in"
-height="1.5984853455818022in"}
+![](media/image25.png)
 
 The changes are reflected in the product\_details collection as well.
 Here we see that the stock has been changed to 0 and the boolean field
 "deleted" has been changed to true.
 
-![](media/image26.png){width="6.122296587926509in"
-height="1.4598490813648295in"}
+![](media/image26.png)
