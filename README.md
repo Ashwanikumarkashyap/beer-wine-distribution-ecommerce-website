@@ -1,7 +1,5 @@
 # Beer & Wine Distribution E-Commerce Website
 
-![](media/image1.png)
-
 ## 1 Project Description
 
 We have created an ecommerce website for selling liquors such as wine
@@ -12,6 +10,8 @@ validating phone numbers and email addresses. We also check uniqueness
 of credentials while a new user is signing up. For products, we have
 textual search, as well as filtering based on categories and price range
 with paging incorporated.
+
+![](media/image1.png)
 
 **1.1 Important Components of the System** -
 
