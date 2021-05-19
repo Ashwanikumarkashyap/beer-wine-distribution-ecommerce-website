@@ -35,7 +35,7 @@ ordered products history as well.
 
 ![](media/image2.png)
 
-![](media/image3.jpg)
+![](media/image3.png)
 
 ## 3 Technologies Used
 
