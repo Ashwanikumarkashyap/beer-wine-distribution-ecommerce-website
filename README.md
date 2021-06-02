@@ -44,34 +44,34 @@ ordered products history as well.
 1.  HTML, CSS JavaScript
 
 2.  Bootstrap
-    [[https://icons.getbootstrap.com/]{.underline}](https://icons.getbootstrap.com/)
+    [https://icons.getbootstrap.com/](https://icons.getbootstrap.com/)
 
-3.  Jquery [[https://jquery.com/]{.underline}](https://jquery.com/)
+3.  Jquery [https://jquery.com/](https://jquery.com/)
 
 4.  Font Awesome fonts
-    [[https://fontawesome.com/]{.underline}](https://fontawesome.com/)
+    [https://fontawesome.com/](https://fontawesome.com/)
 
 **3.2 Back-End**
 
 1.  Programming Language - Python 3.x
 
 2.  Web-Framework - Flask
-    ([[https://pypi.org/project/Flask/]{.underline}](https://pypi.org/project/Flask/))
+    [https://pypi.org/project/Flask/](https://pypi.org/project/Flask/)
 
 3.  MongoDB Interaction - PyMongo
-    ([[https://pypi.org/project/pymongo/]{.underline}](https://pypi.org/project/pymongo/)))
+    [https://pypi.org/project/pymongo/](https://pypi.org/project/pymongo/)
 
 4.  Password Hashing - bcrypt
-    ([[https://pypi.org/project/bcrypt/]{.underline}](https://pypi.org/project/bcrypt/)))
+    [https://pypi.org/project/bcrypt/](https://pypi.org/project/bcrypt/)
 
 5.  Password Policy - password-strength
-    ([[https://pypi.org/project/password-strength/]{.underline}](https://pypi.org/project/password-strength/)))
+    [https://pypi.org/project/password-strength/](https://pypi.org/project/password-strength/)
 
 6.  WSGI Utilities - Werkzeug
-    ([[https://pypi.org/project/Werkzeug/]{.underline}](https://pypi.org/project/Werkzeug/))
+    [https://pypi.org/project/Werkzeug/](https://pypi.org/project/Werkzeug/)
 
 7.  String Validations - Regex
-    ([[https://docs.python.org/3/library/re.html]{.underline}](https://docs.python.org/3/library/re.html))
+    [https://docs.python.org/3/library/re.html](https://docs.python.org/3/library/re.html)
 
 **3.3 Database**
 
@@ -318,8 +318,6 @@ from an empty Cart from next time. We also have some new fields like
 order\_date, total\_price\_post\_charges and order\_status.
 
 **5.13 Admin View**
-
-[ ]{.underline}
 
 By logging as admin, an admin can view all the products in the
 inventory. He/She will be access to add/delete/update any product's
